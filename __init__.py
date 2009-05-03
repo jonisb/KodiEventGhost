@@ -125,7 +125,7 @@ WINDOWS = (
 # actions handled by XBMC.  For a list of all actions see: http://xbmc.org/wiki/?title=Action_IDs#General_actions_available_throughout_most_of_XBMC
 
 GENERAL_ACTIONS = (
-(eg.ActionGroup, "General actions", "General actions", None, (
+(eg.ActionGroup, "General", "General", None, (
     ("Left", "Left", "Move left off a control.", "Left"),
     ("Right", "Right", "Move right off a control.", "Right"),
     ("Up", "Up", "Move up off a control.", "Up"),
@@ -162,7 +162,7 @@ GENERAL_ACTIONS = (
 # actions handled by XBMC.  For a list of all actions see: http://xbmc.org/wiki/?title=Action_IDs#General_actions_available_while_video_or_music_are_playing
 
 MEDIA_PLAYING_ACTIONS = (
-(eg.ActionGroup, "Media plying actions", "Media plying actions", None, (
+(eg.ActionGroup, "Media plying", "Media plying", None, (
     ("Play", "Play", "Play the selected item (or folder of items), or unpause a paused item..", "Play"),
     ("Pause", "Pause", " Pause the currently playing item. .", "Pause"),
     ("Stop", "Stop", " Stop the currently playing item. .", "Stop"),
@@ -193,7 +193,7 @@ MEDIA_PLAYING_ACTIONS = (
 # Actions handled by XBMC.  For a list of all actions see: http://xbmc.org/wiki/?title=Action_IDs#Actions_available_only_in_Music_and_Videos_windows_only
 
 PLAYLIST_ACTIONS = (
-(eg.ActionGroup, "Playlist actions", "Playlist actions", None, (
+(eg.ActionGroup, "Playlist", "Playlist", None, (
     ("Playlist", "Playlist", "Toggle to playlist view from My Music or My Videos.", "Playlist"),
     ("Queue", "Queue", "Queue the item to the current playlist.", "Queue"),
     ("MoveItemUp", "MoveItemUp", "Used to rearrange playlists.", "MoveItemUp"),
@@ -204,7 +204,7 @@ PLAYLIST_ACTIONS = (
 # Actions handled by XBMC.  For a list of all actions see: http://xbmc.org/wiki/?title=Action_IDs#Actions_available_only_in_Full_Screen_Video
 
 FULLSCREEN_VIDEO_ACTIONS = (
-(eg.ActionGroup, "Fullscreen video actions", "Actions available only in Full Screen Video", None, (
+(eg.ActionGroup, "Fullscreen video", "FullScreen Video", None, (
     ("StepForward", "StepForward", "Step forward 1% in the movie..", "StepForward"),
     ("StepBack", "StepBack", "Step back 1% in the movie..", "StepBack"),
     ("BigStepForward", "BigStepForward", "Step forward 10% in the movie..", "BigStepForward"),
@@ -228,7 +228,7 @@ FULLSCREEN_VIDEO_ACTIONS = (
 # Actions handled by XBMC.  For a list of all actions see: http://xbmc.org/wiki/?title=Action_IDs#Actions_available_during_a_picture_slideshow
 
 SLIDESHOW_ACTIONS = (
-(eg.ActionGroup, "Picture slideshow actions", "Picture slideshow actions", None, (
+(eg.ActionGroup, "Picture slideshow", "Picture slideshow", None, (
     ("NextPicture", "NextPicture", "Move to the next picture in a slideshow..", "NextPicture"),
     ("PreviousPicture", "PreviousPicture", "Move to the previous picture in a slideshow..", "PreviousPicture"),
     ("ZoomOut", "ZoomOut", "Used in picture or slideshow to zoom out of the current image..", "ZoomOut"),
@@ -250,7 +250,7 @@ SLIDESHOW_ACTIONS = (
 # Actions handled by XBMC.  For a list of all actions see: http://xbmc.org/wiki/?title=Action_IDs#Actions_available_in_screen_calibration
 
 CALIBRATION_ACTIONS = (
-(eg.ActionGroup, "Screen calibration actions", "Screen calibration actions", None, (
+(eg.ActionGroup, "Screen calibration", "Screen calibration", None, (
     ("NextCalibration", "NextCalibration", "Used in Video + GUI calibration.", "NextCalibration"),
     ("ResetCalibration", "ResetCalibration", "Used in Video + GUI calibration.", "ResetCalibration"),
     ("AnalogMove", "AnalogMove", "Move in the calibration screens, and while zoomed in My Pictures..", "AnalogMove"),
@@ -261,7 +261,7 @@ CALIBRATION_ACTIONS = (
 # Actions handled by XBMC.  For a list of all actions see: http://xbmc.org/wiki/?title=Action_IDs#Actions_available_in_the_File_Manager
 
 FILEMANAGER_ACTIONS = (
-(eg.ActionGroup, "File Manager actions", "File Manager actions", None, (
+(eg.ActionGroup, "File Manager", "File Manager", None, (
     ("Delete", "Delete", "Used in My Files to delete a file..", "Delete"),
     ("Copy", "Copy", "Used in My Files to copy a file..", "Copy"),
     ("Move", "Move", "Used in My Files to move a file..", "Move"),
@@ -271,7 +271,7 @@ FILEMANAGER_ACTIONS = (
 # Actions handled by XBMC.  For a list of all actions see: http://xbmc.org/wiki/?title=Action_IDs#Actions_available_in_the_on-screen_keyboard
 
 ON_SCREEN_KEYBOARD_ACTIONS = (
-(eg.ActionGroup, "On-screen keyboard actions", "On-screen keyboard actions", None, (
+(eg.ActionGroup, "On-screen keyboard", "On-screen keyboard", None, (
     ("BackSpace", "BackSpace", "Used in the virtual keyboards to delete one letter..", "BackSpace"),
     ("Shift", "Shift", "Used in Virtual Keyboard to switch to upper or lower case letters.", "Shift"),
     ("Symbols", "Symbols", "Used in Virtual Keyboard to switch to or from symbols mode.", "Symbols"),
@@ -283,7 +283,7 @@ ON_SCREEN_KEYBOARD_ACTIONS = (
 # Actions handled by XBMC.  For a list of all actions see: http://xbmc.org/wiki/?title=Action_IDs#Actions_available_during_a_music_visualisation
 
 VISUALISATION_ACTIONS = (
-(eg.ActionGroup, "Music visualisation actions", "Music visualisation actions", None, (
+(eg.ActionGroup, "Music visualisation", "Music visualisation", None, (
     ("OSD", "OSD", "Toggles the OSD while playing an item..", "OSD"),
     ("ShowPreset", "ShowPreset", "Shows the current visualisation preset (milkdrop/spectrum).", "ShowPreset"),
     ("PresetList", "PresetList", "Pops up the visualisation preset list (milkdrop/spectrum).", "PresetList"),
@@ -297,7 +297,7 @@ VISUALISATION_ACTIONS = (
 )
 
 SHUTDOWN_ACTIONS = (
-(eg.ActionGroup, "Shutdown related actions", "Shutdown related actions", None, (
+(eg.ActionGroup, "Shutdown related", "Shutdown related", None, (
     ("Quit", "Quit XBMC", "Quit XBMC.", "Quit"),
     ("RestartApp", "Restart XBMC", "Restarts XBMC.", "RestartApp"),
     ("Reset", "Reset Computer", "Reset the computer.", "Reset"),
@@ -314,52 +314,52 @@ SHUTDOWN_ACTIONS = (
 
 REMOTE_BUTTONS = (
 (eg.ActionGroup, "Remote", "Remote", None, (
-    ("Left", "Left", "Move left off a control.", "left"),
-    ("Right", "Right", "Move right off a control.", "right"),
-    ("Up", "Up", "Move up off a control.", "up"),
-    ("Down", "Down", "Move down off a control.", "down"),
-    ("Select", "Select", "Select a button, or an item from a list of thumb view.", "select"),
-    ("Back", "Back", "", "back"),
-    ("Menu", "Menu", "", "menu"),
-    ("Info", "Info", "", "info"),
-    ("Display", "Display", "", "display"),
-    ("Title", "Title", "", "title"),
-    ("Play", "Play", "", "play"),
-    ("Pause", "Pause", "", "pause"),
-    ("Reverse", "Reverse", "", "reverse"),
-    ("Forward", "Forward", "", "forward"),
-    ("Skip +", "Skip +", "", "skipplus"),
-    ("Skip -", "Skip -", "", "skipminus"),
-    ("Stop", "Stop", "", "stop"),
-    ("0", "0", "", "zero"),
-    ("1", "1", "", "one"),
-    ("2", "2", "", "two"),
-    ("3", "3", "", "three"),
-    ("4", "4", "", "four"),
-    ("5", "5", "", "five"),
-    ("6", "6", "", "six"),
-    ("7", "7", "", "seven"),
-    ("8", "8", "", "eight"),
-    ("9", "9", "", "nine"),
-    ("Power", "Power", "", "power"),
-    ("My TV", "My TV", "", "myTV"),
-    ("My Music", "My Music", "", "mymusic"),
-    ("My Pictures", "My Pictures", "", "mypictures"),
-    ("My Video", "My Video", "", "myvideo"),
-    ("Record", "Record", "", "record"),
-    ("Start", "Start", "", "start"),
-    ("Vol +", "Vol +", "", "volumeplus"),
-    ("Vol -", "Vol -", "", "volumeminus"),
-    ("channelplus", "channelplus", "", "channelplus"),
-    ("channelminus", "channelminus", "", "channelminus"),
-    ("pageplus", "pageplus", "", "pageplus"),
-    ("pageminus", "pageminus", "", "pageminus"),
-    ("Mute", "Mute", "", "mute"),
-    ("Recorded TV", "Recorded TV", "", "recordedtv"),
-    ("Live TV", "Live TV", "", "livetv"),
-    ("*", "*", "", "star"),
-    ("#", "#", "", "hash"),
-    ("Clear", "Clear", "", "clear"),
+    ("RemoteLeft", "Left", "Move left off a control.", "left"),
+    ("RemoteRight", "Right", "Move right off a control.", "right"),
+    ("RemoteUp", "Up", "Move up off a control.", "up"),
+    ("RemoteDown", "Down", "Move down off a control.", "down"),
+    ("RemoteSelect", "Select", "Select a button, or an item from a list of thumb view.", "select"),
+    ("RemoteBack", "Back", "", "back"),
+    ("RemoteMenu", "Menu", "", "menu"),
+    ("RemoteInfo", "Info", "", "info"),
+    ("RemoteDisplay", "Display", "", "display"),
+    ("RemoteTitle", "Title", "", "title"),
+    ("RemotePlay", "Play", "", "play"),
+    ("RemotePause", "Pause", "", "pause"),
+    ("RemoteReverse", "Reverse", "", "reverse"),
+    ("RemoteForward", "Forward", "", "forward"),
+    ("RemoteSkip +", "Skip +", "", "skipplus"),
+    ("RemoteSkip -", "Skip -", "", "skipminus"),
+    ("RemoteStop", "Stop", "", "stop"),
+    ("Remote0", "0", "", "zero"),
+    ("Remote1", "1", "", "one"),
+    ("Remote2", "2", "", "two"),
+    ("Remote3", "3", "", "three"),
+    ("Remote4", "4", "", "four"),
+    ("Remote5", "5", "", "five"),
+    ("Remote6", "6", "", "six"),
+    ("Remote7", "7", "", "seven"),
+    ("Remote8", "8", "", "eight"),
+    ("Remote9", "9", "", "nine"),
+    ("RemotePower", "Power", "", "power"),
+    ("RemoteMyTV", "My TV", "", "myTV"),
+    ("RemoteMyMusic", "My Music", "", "mymusic"),
+    ("RemoteMyPictures", "My Pictures", "", "mypictures"),
+    ("RemoteMyVideo", "My Video", "", "myvideo"),
+    ("RemoteRecord", "Record", "", "record"),
+    ("RemoteStart", "Start", "", "start"),
+    ("RemoteVol +", "Vol +", "", "volumeplus"),
+    ("RemoteVol -", "Vol -", "", "volumeminus"),
+    ("Remotechannelplus", "channelplus", "", "channelplus"),
+    ("Remotechannelminus", "channelminus", "", "channelminus"),
+    ("Remotepageplus", "pageplus", "", "pageplus"),
+    ("Remotepageminus", "pageminus", "", "pageminus"),
+    ("RemoteMute", "Mute", "", "mute"),
+    ("RemoteRecorded TV", "Recorded TV", "", "recordedtv"),
+    ("RemoteLive TV", "Live TV", "", "livetv"),
+    ("Remote*", "*", "", "star"),
+    ("Remote#", "#", "", "hash"),
+    ("RemoteClear", "Clear", "", "clear"),
 )),
 )
 
@@ -367,34 +367,34 @@ REMOTE_BUTTONS = (
 
 GAMEPAD_BUTTONS = (
 (eg.ActionGroup, "Gamepad", "Gamepad", None, (
-    ("a", "a", "a.", "a"),
-    ("b", "b", "b.", "b"),
-    ("x", "x", "x.", "x"),
-    ("y", "y", "y.", "y"),
-    ("white", "white", "white.", "white"),
-    ("black", "black", "black.", "black"),
-    ("start", "start", "start.", "start"),
-    ("back", "back", "back.", "back"),
-    ("leftthumbbutton", "leftthumbbutton", "leftthumbbutton.", "leftthumbbutton"),
-    ("rightthumbbutton", "rightthumbbutton", "rightthumbbutton.", "rightthumbbutton"),
-    ("leftthumbstick", "leftthumbstick", "leftthumbstick.", "leftthumbstick"),
-    ("leftthumbstickup", "leftthumbstickup", "leftthumbstickup.", "leftthumbstickup"),
-    ("leftthumbstickdown", "leftthumbstickdown", "leftthumbstickdown.", "leftthumbstickdown"),
-    ("leftthumbstickleft", "leftthumbstickleft", "leftthumbstickleft.", "leftthumbstickleft"),
-    ("leftthumbstickright", "leftthumbstickright", "leftthumbstickright.", "leftthumbstickright"),
-    ("rightthumbstick", "rightthumbstick", "rightthumbstick.", "rightthumbstick"),
-    ("rightthumbstickup", "rightthumbstickup", "rightthumbstickup.", "rightthumbstickup"),
-    ("rightthumbstickdown", "rightthumbstickdown", "rightthumbstickdown.", "rightthumbstickdown"),
-    ("rightthumbstickleft", "rightthumbstickleft", "rightthumbstickleft.", "rightthumbstickleft"),
-    ("rightthumbstickright", "rightthumbstickright", "rightthumbstickright.", "rightthumbstickright"),
-    ("lefttrigger", "lefttrigger", "lefttrigger.", "lefttrigger"),
-    ("righttrigger", "righttrigger", "righttrigger.", "righttrigger"),
-    ("leftanalogtrigger", "leftanalogtrigger", "leftanalogtrigger.", "leftanalogtrigger"),
-    ("rightanalogtrigger", "rightanalogtrigger", "rightanalogtrigger.", "rightanalogtrigger"),
-    ("dpadleft", "dpadleft", "dpadleft.", "dpadleft"),
-    ("dpadright", "dpadright", "dpadright.", "dpadright"),
-    ("dpadup", "dpadup", "dpadup.", "dpadup"),
-    ("dpaddown", "dpaddown", "dpaddown.", "dpaddown"),
+    ("GamepadA", "a", "a.", "a"),
+    ("GamepadB", "b", "b.", "b"),
+    ("GamepadX", "x", "x.", "x"),
+    ("GamepadY", "y", "y.", "y"),
+    ("GamepadWhite", "white", "white.", "white"),
+    ("GamepadBlack", "black", "black.", "black"),
+    ("GamepadStart", "start", "start.", "start"),
+    ("Gamepadback", "back", "back.", "back"),
+    ("GamepadLeftThumbButton", "leftthumbbutton", "leftthumbbutton.", "leftthumbbutton"),
+    ("GamepadRightThumbButton", "rightthumbbutton", "rightthumbbutton.", "rightthumbbutton"),
+    ("GamepadLeftThumbStick", "leftthumbstick", "leftthumbstick.", "leftthumbstick"),
+    ("GamepadLeftThumbStickUp", "leftthumbstickup", "leftthumbstickup.", "leftthumbstickup"),
+    ("GamepadLeftThumbStickDown", "leftthumbstickdown", "leftthumbstickdown.", "leftthumbstickdown"),
+    ("GamepadLeftThumbStickLeft", "leftthumbstickleft", "leftthumbstickleft.", "leftthumbstickleft"),
+    ("GamepadLeftThumbStickRight", "leftthumbstickright", "leftthumbstickright.", "leftthumbstickright"),
+    ("GamepadRightThumbStick", "rightthumbstick", "rightthumbstick.", "rightthumbstick"),
+    ("GamepadRightThumbStickUp", "rightthumbstickup", "rightthumbstickup.", "rightthumbstickup"),
+    ("GamepadRightThumbStickDown", "rightthumbstickdown", "rightthumbstickdown.", "rightthumbstickdown"),
+    ("GamepadRightThumbStickLeft", "rightthumbstickleft", "rightthumbstickleft.", "rightthumbstickleft"),
+    ("GamepadRightThumbStickRight", "rightthumbstickright", "rightthumbstickright.", "rightthumbstickright"),
+    ("GamepadLeftTrigger", "lefttrigger", "lefttrigger.", "lefttrigger"),
+    ("GamepadRightTrigger", "righttrigger", "righttrigger.", "righttrigger"),
+    ("GamepadLeftAnalogTrigger", "leftanalogtrigger", "leftanalogtrigger.", "leftanalogtrigger"),
+    ("GamepadRightAnalogTrigger", "rightanalogtrigger", "rightanalogtrigger.", "rightanalogtrigger"),
+    ("GamepadDpadLeft", "dpadleft", "dpadleft.", "dpadleft"),
+    ("GamepadDpadRight", "dpadright", "dpadright.", "dpadright"),
+    ("GamepadDpadUp", "dpadup", "dpadup.", "dpadup"),
+    ("GamepadDpadDown", "dpaddown", "dpaddown.", "dpaddown"),
 )),
 )
 
@@ -436,19 +436,21 @@ class GamepadPrototype(eg.ActionClass):
 
 class XBMC(eg.PluginClass):
     def __init__(self):
-        self.AddActionsFromList(REMOTE_BUTTONS, ButtonPrototype)
-        self.AddActionsFromList(GAMEPAD_BUTTONS, GamepadPrototype)
+        ButtonsGroup = self.AddGroup("Buttons", "Button actions to send to XBMC")
+        ButtonsGroup.AddActionsFromList(REMOTE_BUTTONS, ButtonPrototype)
+        ButtonsGroup.AddActionsFromList(GAMEPAD_BUTTONS, GamepadPrototype)
+        ActionsGroup = self.AddGroup("Actions", "Actions to send to XBMC")
+        ActionsGroup.AddActionsFromList(GENERAL_ACTIONS, ActionPrototype)
+        ActionsGroup.AddActionsFromList(MEDIA_PLAYING_ACTIONS, ActionPrototype)
+        ActionsGroup.AddActionsFromList(PLAYLIST_ACTIONS, ActionPrototype)
+        ActionsGroup.AddActionsFromList(FULLSCREEN_VIDEO_ACTIONS, ActionPrototype)
+        ActionsGroup.AddActionsFromList(SLIDESHOW_ACTIONS, ActionPrototype)
+        ActionsGroup.AddActionsFromList(CALIBRATION_ACTIONS, ActionPrototype)
+        ActionsGroup.AddActionsFromList(FILEMANAGER_ACTIONS, ActionPrototype)
+        ActionsGroup.AddActionsFromList(ON_SCREEN_KEYBOARD_ACTIONS, ActionPrototype)
+        ActionsGroup.AddActionsFromList(VISUALISATION_ACTIONS, ActionPrototype)
+        ActionsGroup.AddActionsFromList(SHUTDOWN_ACTIONS, ActionPrototype)
         self.AddActionsFromList(WINDOWS, ActionPrototype)
-        self.AddActionsFromList(GENERAL_ACTIONS, ActionPrototype)
-        self.AddActionsFromList(MEDIA_PLAYING_ACTIONS, ActionPrototype)
-        self.AddActionsFromList(PLAYLIST_ACTIONS, ActionPrototype)
-        self.AddActionsFromList(FULLSCREEN_VIDEO_ACTIONS, ActionPrototype)
-        self.AddActionsFromList(SLIDESHOW_ACTIONS, ActionPrototype)
-        self.AddActionsFromList(CALIBRATION_ACTIONS, ActionPrototype)
-        self.AddActionsFromList(FILEMANAGER_ACTIONS, ActionPrototype)
-        self.AddActionsFromList(ON_SCREEN_KEYBOARD_ACTIONS, ActionPrototype)
-        self.AddActionsFromList(VISUALISATION_ACTIONS, ActionPrototype)
-        self.AddActionsFromList(SHUTDOWN_ACTIONS, ActionPrototype)
 #        self.AddAction(StopRepeating)
         self.xbmc = XBMCClient("EventGhost")
 
