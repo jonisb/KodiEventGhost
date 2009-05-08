@@ -374,7 +374,7 @@ GAMEPAD_BUTTONS = (
     ("GamepadWhite", "white", "white.", "white"),
     ("GamepadBlack", "black", "black.", "black"),
     ("GamepadStart", "start", "start.", "start"),
-    ("Gamepadback", "back", "back.", "back"),
+    ("GamepadBack", "back", "back.", "back"),
     ("GamepadLeftThumbButton", "leftthumbbutton", "leftthumbbutton.", "leftthumbbutton"),
     ("GamepadRightThumbButton", "rightthumbbutton", "rightthumbbutton.", "rightthumbbutton"),
     ("GamepadLeftThumbStick", "leftthumbstick", "leftthumbstick.", "leftthumbstick"),
