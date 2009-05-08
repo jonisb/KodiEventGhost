@@ -23,7 +23,7 @@ from xbmcclient import *
 eg.RegisterPlugin(
     name = "XBMCRepeat",
     author = "Joni Boren",
-    version = "0.3",
+    version = "0.4",
     kind = "program",
     createMacrosOnAdd = True,
     url = "http://www.eventghost.org/forum/viewtopic.php?t=1005",
@@ -162,7 +162,7 @@ GENERAL_ACTIONS = (
 # actions handled by XBMC.  For a list of all actions see: http://xbmc.org/wiki/?title=Action_IDs#General_actions_available_while_video_or_music_are_playing
 
 MEDIA_PLAYING_ACTIONS = (
-(eg.ActionGroup, "Media plying", "Media plying", None, (
+(eg.ActionGroup, "Media playing", "Media playing", None, (
     ("Play", "Play", "Play the selected item (or folder of items), or unpause a paused item..", "Play"),
     ("Pause", "Pause", " Pause the currently playing item. .", "Pause"),
     ("Stop", "Stop", " Stop the currently playing item. .", "Stop"),
