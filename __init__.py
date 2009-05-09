@@ -156,6 +156,7 @@ GENERAL_ACTIONS = (
     ("Number7", "Number7", "Used to input the number 7.", "Number7"),
     ("Number8", "Number8", "Used to input the number 8.", "Number8"),
     ("Number9", "Number9", "Used to input the number 9.", "Number9"),
+    ("UpdateLibrary", "UpdateLibrary", "UpdateLibrary", "UpdateLibrary(Video)"),
 )),
 )
 
