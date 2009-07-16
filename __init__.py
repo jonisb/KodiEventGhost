@@ -23,7 +23,7 @@ from xbmcclient import *
 eg.RegisterPlugin(
     name = "XBMCRepeat",
     author = "Joni Boren",
-    version = "0.4",
+    version = "0.5",
     kind = "program",
     canMultiLoad = True,
     createMacrosOnAdd = True,
@@ -311,6 +311,57 @@ SHUTDOWN_ACTIONS = (
 )),
 )
 
+UNCATEGORIZED_ACTIONS = (
+(eg.ActionGroup, "Uncategorized actions", "Uncategorized actions", None, (
+    ("JumpSMS2", "JumpSMS2", "JumpSMS2.", "JumpSMS2"),
+    ("JumpSMS3", "JumpSMS3", "JumpSMS3.", "JumpSMS3"),
+    ("JumpSMS4", "JumpSMS4", "JumpSMS4.", "JumpSMS4"),
+    ("JumpSMS5", "JumpSMS5", "JumpSMS5.", "JumpSMS5"),
+    ("JumpSMS6", "JumpSMS6", "JumpSMS6.", "JumpSMS6"),
+    ("JumpSMS7", "JumpSMS7", "JumpSMS7.", "JumpSMS7"),
+    ("JumpSMS8", "JumpSMS8", "JumpSMS8.", "JumpSMS8"),
+    ("JumpSMS9", "JumpSMS9", "JumpSMS9.", "JumpSMS9"),
+    ("FilterClear", "FilterClear", "FilterClear.", "FilterClear"),
+    ("FilterSMS2", "FilterSMS2", "FilterSMS2.", "FilterSMS2"),
+    ("FilterSMS3", "FilterSMS3", "FilterSMS3.", "FilterSMS3"),
+    ("FilterSMS4", "FilterSMS4", "FilterSMS4.", "FilterSMS4"),
+    ("FilterSMS5", "FilterSMS5", "FilterSMS5.", "FilterSMS5"),
+    ("FilterSMS6", "FilterSMS6", "FilterSMS6.", "FilterSMS6"),
+    ("FilterSMS7", "FilterSMS7", "FilterSMS7.", "FilterSMS7"),
+    ("FilterSMS8", "FilterSMS8", "FilterSMS8.", "FilterSMS8"),
+    ("FilterSMS9", "FilterSMS9", "FilterSMS9.", "FilterSMS9"),
+    ("FirstPage", "FirstPage", "FirstPage.", "FirstPage"),
+    ("LastPage", "LastPage", "LastPage.", "LastPage"),
+
+    ("HideSubMenu", "HideSubMenu", "<Depreciated>.", "HideSubMenu"),
+
+    ("ToggleSource", "ToggleSource", "ToggleSource.", "ToggleSource"),
+    ("Remove", "Remove", "Remove.", "Remove"),
+
+    ("AudioToggleDigital", "AudioToggleDigital", "AudioToggleDigital.", "AudioToggleDigital"),
+
+    ("OSDLeft", "OSDLeft", "OSDLeft.", "OSDLeft"),
+    ("OSDRight", "OSDRight", "OSDRight.", "OSDRight"),
+    ("OSDUp", "OSDUp", "OSDUp.", "OSDUp"),
+    ("OSDDown", "OSDDown", "OSDDown.", "OSDDown"),
+    ("OSDSelect", "OSDSelect", "OSDSelect.", "OSDSelect"),
+    ("OSDValuePlus", "OSDValuePlus", "OSDValuePlus.", "OSDValuePlus"),
+    ("OSDValueMinus", "OSDValueMinus", "OSDValueMinus.", "OSDValueMinus"),
+
+    ("ToggleWatched", "ToggleWatched", "ToggleWatched.", "ToggleWatched"),
+    ("ScanItem", "ScanItem", "ScanItem.", "ScanItem"),
+
+    ("Enter", "Enter", "Enter.", "Enter"),
+    ("IncreaseRating", "IncreaseRating", "IncreaseRating.", "IncreaseRating"),
+    ("DecreaseRating", "DecreaseRating", "DecreaseRating.", "DecreaseRating"),
+    ("ToggleFullScreen", "ToggleFullScreen", "ToggleFullScreen.", "ToggleFullScreen"),
+    ("NextScene", "NextScene", "NextScene.", "NextScene"),
+    ("PreviousScene", "PreviousScene", "PreviousScene.", "PreviousScene"),
+    ("NextLetter", "NextLetter", "NextLetter.", "NextLetter"),
+    ("PrevLetter", "PrevLetter", "PrevLetter.", "PrevLetter"),
+)),
+)
+
 # Remote buttons handled by XBMC.  For a list of all buttons see: http://xbmc.org/wiki/?title=Keymap.xml#Remote_Buttons
 
 REMOTE_BUTTONS = (
@@ -477,6 +528,7 @@ class XBMC(eg.PluginClass):
         ActionsGroup.AddActionsFromList(ON_SCREEN_KEYBOARD_ACTIONS, ActionPrototype)
         ActionsGroup.AddActionsFromList(VISUALISATION_ACTIONS, ActionPrototype)
         ActionsGroup.AddActionsFromList(SHUTDOWN_ACTIONS, ActionPrototype)
+        ActionsGroup.AddActionsFromList(UNCATEGORIZED_ACTIONS, ActionPrototype)
 #        ConfigurableGroup = ActionsGroup.AddGroup("Configurable", "Actions that have configurable settings")
 #        ConfigurableGroup.AddAction(UpdateLibrary)
         self.AddActionsFromList(WINDOWS, ActionPrototype)
@@ -484,9 +536,18 @@ class XBMC(eg.PluginClass):
         self.xbmc = XBMCClient("EventGhost")
 
     def Configure(self, ip="127.0.0.1"):
+#    def Configure(self, ip="127.0.0.1", IPs = ['127.0.0.1', '192.168.0.100']):
         panel = eg.ConfigPanel()
         textControl = wx.TextCtrl(panel, -1, ip)
-        panel.sizer.Add(textControl, 1, wx.EXPAND)
+#        textControl = panel.ComboBox(
+#            ip,
+#            IPs,
+#            style=wx.CB_DROPDOWN,
+#            validator=eg.DigitOnlyValidator()
+#        )
+        panel.sizer.Add(wx.StaticText(panel, -1, "IP address of XBMC ( 127.0.0.1 is this computer )"))
+#        panel.sizer.Add(textControl, 1, wx.EXPAND)
+        panel.sizer.Add(textControl)
         while panel.Affirmed():
             panel.SetResult(textControl.GetValue())
 
