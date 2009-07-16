@@ -25,6 +25,7 @@ eg.RegisterPlugin(
     author = "Joni Boren",
     version = "0.4",
     kind = "program",
+    canMultiLoad = True,
     createMacrosOnAdd = True,
     url = "http://www.eventghost.org/forum/viewtopic.php?t=1005",
     description = "Adds actions buttons to control <a href='http://www.xbmc.org/'>XBMC</a>.",
@@ -156,7 +157,6 @@ GENERAL_ACTIONS = (
     ("Number7", "Number7", "Used to input the number 7.", "Number7"),
     ("Number8", "Number8", "Used to input the number 8.", "Number8"),
     ("Number9", "Number9", "Used to input the number 9.", "Number9"),
-    ("UpdateLibrary", "UpdateLibrary", "UpdateLibrary", "UpdateLibrary(Video)"),
 )),
 )
 
@@ -406,6 +406,31 @@ class ActionPrototype(eg.ActionClass):
         except:
             raise self.Exceptions.ProgramNotRunning
 
+# actions handled by XBMC.  For a list of all actions see: http://xbmc.org/wiki/?title=Action_IDs#General_actions_available_throughout_most_of_XBMC
+"""
+CONFIGURABLE_ACTIONS = (
+(eg.ActionGroup, "General", "General", None, (
+    ("UpdateLibrary", "UpdateLibrary", "UpdateLibrary", "UpdateLibrary(Video)"),
+)),
+)
+"""
+class UpdateLibrary(eg.ActionBase):
+    def __call__(self, libraryType="Video", updatePath=""):
+        try:
+            self.plugin.xbmc.send_action("UpdateLibrary("+libraryType+","+updatePath+")", ACTION_BUTTON)
+        except:
+            raise self.Exceptions.ProgramNotRunning
+
+    def Configure(self, libraryType="Video", updatePath="" ):
+        panel = eg.ConfigPanel()
+        textControl1 = wx.TextCtrl(panel, -1, libraryType)
+        textControl2 = wx.TextCtrl(panel, -1, updatePath)
+        panel.sizer.Add(textControl1, 1, wx.EXPAND)
+        panel.sizer.Add(textControl2, 1, wx.EXPAND)
+        while panel.Affirmed():
+            panel.SetResult(textControl1.GetValue())
+            panel.SetResult(textControl2.GetValue())
+
 class ButtonPrototype(eg.ActionClass):
     def __call__(self):
         try:
@@ -437,6 +462,7 @@ class GamepadPrototype(eg.ActionClass):
 
 class XBMC(eg.PluginClass):
     def __init__(self):
+#        self.ip = "127.0.0.1"
         ButtonsGroup = self.AddGroup("Buttons", "Button actions to send to XBMC")
         ButtonsGroup.AddActionsFromList(REMOTE_BUTTONS, ButtonPrototype)
         ButtonsGroup.AddActionsFromList(GAMEPAD_BUTTONS, GamepadPrototype)
@@ -451,13 +477,23 @@ class XBMC(eg.PluginClass):
         ActionsGroup.AddActionsFromList(ON_SCREEN_KEYBOARD_ACTIONS, ActionPrototype)
         ActionsGroup.AddActionsFromList(VISUALISATION_ACTIONS, ActionPrototype)
         ActionsGroup.AddActionsFromList(SHUTDOWN_ACTIONS, ActionPrototype)
+#        ConfigurableGroup = ActionsGroup.AddGroup("Configurable", "Actions that have configurable settings")
+#        ConfigurableGroup.AddAction(UpdateLibrary)
         self.AddActionsFromList(WINDOWS, ActionPrototype)
 #        self.AddAction(StopRepeating)
         self.xbmc = XBMCClient("EventGhost")
 
-    def __start__(self):
+    def Configure(self, ip="127.0.0.1"):
+        panel = eg.ConfigPanel()
+        textControl = wx.TextCtrl(panel, -1, ip)
+        panel.sizer.Add(textControl, 1, wx.EXPAND)
+        while panel.Affirmed():
+            panel.SetResult(textControl.GetValue())
+
+    def __start__(self, ip):
         try:
-            self.xbmc.connect()
+            self.xbmc.connect(ip=ip)
+#            self.xbmc.connect()
 #            self.xbmc.connect(ip="192.168.0.100")
 #            self.stopThreadEvent = Event()
 #            thread = Thread(target=self.ThreadWorker, args=(self.stopThreadEvent,))
