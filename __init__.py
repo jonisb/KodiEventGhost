@@ -121,6 +121,7 @@ WINDOWS = (
     ("Pictureinfo", "Pictureinfo", "Pictureinfo", "Activatewindow(Pictureinfo)"),
     ("Pluginsettings", "Pluginsettings", "Pluginsettings", "Activatewindow(Pluginsettings)"),
     ("Fullscreeninfo", "Fullscreeninfo", "Fullscreeninfo", "Activatewindow(Fullscreeninfo)"),
+    ("PlayerControls", "Player Controls", "Player Controls", "ActivateWindow(PlayerControls)"),
 )),
 )
 # actions handled by XBMC.  For a list of all actions see: http://xbmc.org/wiki/?title=Action_IDs#General_actions_available_throughout_most_of_XBMC
