@@ -17,6 +17,8 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from xbmcclient import *
+import urllib
+import json
 
 # expose some information about the plugin through an eg.PluginInfo subclass
 
@@ -499,6 +501,73 @@ class GamepadPrototype(eg.ActionClass):
         except:
             raise self.Exceptions.ProgramNotRunning
 
+class GetCurrentlyPlayingFilename(eg.ActionClass):
+  description = "Get filename of currently playing file"
+
+  def __call__(self):
+		filehandle = urllib.urlopen('http://'+self.plugin.ip+':'+self.plugin.port+'/jsonrpc')
+		line = filehandle.readline()
+		filehandle.close()
+		if (line[line.find('<title>') + 7:line.find('<title>') + 7+7].rstrip() == 'JSONRPC'):
+			postdata = '{"jsonrpc": "2.0", "method": "Player.GetActivePlayers", "id": 1}'
+			jsonresponce = urllib.urlopen('http://'+self.plugin.ip+':'+self.plugin.port+'/jsonrpc', postdata).read()
+#			print 'XBMC JSON-RPC content: ', jsonresponce
+			responce  = json.loads(jsonresponce)
+#			print 'result.current: ', responce['result']
+			if (responce['result']['picture']):
+				Method = 'Picture'
+			elif (responce['result']['video']):
+				Method = 'Video'
+			elif (responce['result']['audio']):
+				Method = 'Audio'
+
+			print 'Method: ', Method
+			if (Method != 'Picture'):
+				postdata = '{ "jsonrpc": "2.0", "method": "'+Method+'Playlist.GetItems", "id": 1 }'
+				jsonresponce = urllib.urlopen('http://'+self.plugin.ip+':'+self.plugin.port+'/jsonrpc', postdata).read()
+#			print 'XBMC JSON-RPC content: ', jsonresponce
+				responce = json.loads(jsonresponce)
+				print 'eg.result: ', responce['result']['items'][responce['result']['current']]['file']
+
+				return responce['result']['items'][responce['result']['current']]['file']
+			else:
+				filehandle = urllib.urlopen('http://'+self.plugin.ip+':'+self.plugin.port+'/xbmcCmds/xbmcHttp?command=getcurrentlyplaying')
+				for lines in filehandle.readlines():
+					if (lines.find('Filename:') != -1):
+						print lines[lines.find('Filename:') + 9:].rstrip()
+						return lines[lines.find('Filename:') + 9:].rstrip()
+
+				filehandle.close()
+
+		else:
+			filehandle = urllib.urlopen('http://'+self.plugin.ip+':'+self.plugin.port+'/xbmcCmds/xbmcHttp?command=getcurrentlyplaying')
+			for lines in filehandle.readlines():
+				if (lines.find('Filename:') != -1):
+					print 'eg.result: ', lines[lines.find('Filename:') + 9:].rstrip()
+					return lines[lines.find('Filename:') + 9:].rstrip()
+
+			filehandle.close()
+
+#    try:
+#      print "I'm here ;-)"
+#      url = 'http://'+self.plugin.xbmc.ip+':8080'
+#      jsonrpcurl = url + '/jsonrpc'
+#      postdata = '{"jsonrpc": "2.0", "method": "AudioLibrary.GetAlbums", "params": { "fields": ["album", "lyrics", "duration", "rating"], "end": 100 }, "id": "1"}'
+#      postdata = '{ "jsonrpc": "2.0", "method": "JSONRPC.Version", "id": 1 }'
+#      filehandle = urllib.urlopen('http://'+self.plugin.xbmc.ip+':8080/xbmcCmds/xbmcHttp?command=getcurrentlyplaying')
+#      filehandle = urllib.urlopen('http://127.0.0.1:8080/xbmcCmds/xbmcHttp?command=getcurrentlyplaying')
+#      print "I'm still here ;-)"
+#      filehandle = urllib.urlopen(jsonrpcurl, postdata).read()
+#      print filehandle
+#      for lines in filehandle.readlines():
+#        if (lines.find('Filename:') != -1):
+#          print lines[lines.find('Filename:') + 9:].rstrip()
+#          return lines[lines.find('Filename:') + 9:].rstrip()
+
+#    finally:
+#      filehandle.close()
+#      return filehandle
+
 #class StopRepeating(eg.ActionClass):
 #    name = "Stop Repeating"
 #    description = "Stops a button repeating."
@@ -515,6 +584,7 @@ class GamepadPrototype(eg.ActionClass):
 class XBMC(eg.PluginClass):
     def __init__(self):
 #        self.ip = "127.0.0.1"
+#        self.port = port
         ButtonsGroup = self.AddGroup("Buttons", "Button actions to send to XBMC")
         ButtonsGroup.AddActionsFromList(REMOTE_BUTTONS, ButtonPrototype)
         ButtonsGroup.AddActionsFromList(GAMEPAD_BUTTONS, GamepadPrototype)
@@ -533,13 +603,18 @@ class XBMC(eg.PluginClass):
 #        ConfigurableGroup = ActionsGroup.AddGroup("Configurable", "Actions that have configurable settings")
 #        ConfigurableGroup.AddAction(UpdateLibrary)
         self.AddActionsFromList(WINDOWS, ActionPrototype)
+
+        TestGroup = self.AddGroup("Web API", "JSON-RPC/HTTP API")
+        TestGroup.AddAction(GetCurrentlyPlayingFilename)
+
 #        self.AddAction(StopRepeating)
         self.xbmc = XBMCClient("EventGhost")
 
-    def Configure(self, ip="127.0.0.1"):
+    def Configure(self, ip="127.0.0.1", port="80"):
 #    def Configure(self, ip="127.0.0.1", IPs = ['127.0.0.1', '192.168.0.100']):
         panel = eg.ConfigPanel()
         textControl = wx.TextCtrl(panel, -1, ip)
+        textControl2 = wx.TextCtrl(panel, -1, port)
 #        textControl = panel.ComboBox(
 #            ip,
 #            IPs,
@@ -549,10 +624,13 @@ class XBMC(eg.PluginClass):
         panel.sizer.Add(wx.StaticText(panel, -1, "IP address of XBMC ( 127.0.0.1 is this computer )"))
 #        panel.sizer.Add(textControl, 1, wx.EXPAND)
         panel.sizer.Add(textControl)
+        panel.sizer.Add(textControl2)
         while panel.Affirmed():
-            panel.SetResult(textControl.GetValue())
+            panel.SetResult(textControl.GetValue(), textControl2.GetValue())
 
-    def __start__(self, ip):
+    def __start__(self, ip='127.0.0.1', port='80'):
+        self.ip = ip
+        self.port = port
         try:
             self.xbmc.connect(ip=ip)
 #            self.xbmc.connect()
