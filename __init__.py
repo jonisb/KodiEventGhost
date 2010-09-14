@@ -501,72 +501,108 @@ class GamepadPrototype(eg.ActionClass):
         except:
             raise self.Exceptions.ProgramNotRunning
 
+class XBMC_HTTP_API:
+
+	def __init__(self):
+		self.ip = "127.0.0.1"
+		self.port = "80"
+		return
+
+	def connect(self, ip=None, port=None):
+		if ip: self.ip = ip
+		if port: self.port = port
+		print 'HTTP API connected'
+
+	def send(self, method, params = ""):
+		try:
+			responce = urllib.urlopen('http://'+self.ip+':'+self.port+'/xbmcCmds/xbmcHttp?command='+method+'('+urllib.quote(params, ':\\')+')').readlines()
+		except IOError:
+			print 'HTTP API connection error'
+		else:
+			if (''.join(responce).find('<html>') != -1):
+				responce2 = {}
+				for lines in responce:
+					if (lines.find('<html>') != -1): lines = lines[lines.find('<html>')+6:]
+					if (lines.find('</html>') != -1): lines = lines[:lines.find('</html>')]
+					if (lines.find('<li>') != -1):
+						if (lines.find('OK') != -1):
+							responce2 = 'OK'
+						elif (lines.find('ERROR') != -1):
+							responce2 = lines[4:].rstrip('\n').split(':', 1)
+						elif (lines.find(':') != -1):
+							lines = lines[4:].rstrip('\n').split(':', 1)
+							responce2[lines[0]] = lines[1]
+						else:
+							responce2 = lines[4:].rstrip('\n')
+					else:
+						if (lines.rstrip('\n') != ''):
+							responce2 = lines.rstrip('\n')
+				return responce2
+
+	def close(self):
+		print 'HTTP API connection closed'
+
+class XBMC_JSON_RPC:
+
+	def __init__(self):
+		self.jsoninit = {'jsonrpc':'2.0', 'id':1}
+		self.ip = "127.0.0.1"
+		self.port = "80"
+		return
+
+	def connect(self, ip=None, port=None):
+		if ip: self.ip = ip
+		if port: self.port = port
+		print 'JSON-RPC connected'
+
+	def send(self, method, params = None):
+		self.jsoninit['method'] = method
+		if params: self.jsoninit['params'] = params
+		try:
+			responce = urllib.urlopen('http://'+self.ip+':'+self.port+'/jsonrpc', json.dumps(self.jsoninit)).read()
+		except IOError:
+			print 'JSON-RPC connection error'
+		else:
+#			print responce
+			return json.loads(responce)
+
+	def close(self):
+		print 'JSON-RPC connection closed'
+
 class GetCurrentlyPlayingFilename(eg.ActionClass):
   description = "Get filename of currently playing file"
 
   def __call__(self):
-		filehandle = urllib.urlopen('http://'+self.plugin.ip+':'+self.plugin.port+'/jsonrpc')
-		line = filehandle.readline()
-		filehandle.close()
-		if (line[line.find('<title>') + 7:line.find('<title>') + 7+7].rstrip() == 'JSONRPC'):
-			postdata = '{"jsonrpc": "2.0", "method": "Player.GetActivePlayers", "id": 1}'
-			jsonresponce = urllib.urlopen('http://'+self.plugin.ip+':'+self.plugin.port+'/jsonrpc', postdata).read()
-#			print 'XBMC JSON-RPC content: ', jsonresponce
-			responce  = json.loads(jsonresponce)
-#			print 'result.current: ', responce['result']
-			if (responce['result']['picture']):
-				Method = 'Picture'
-			elif (responce['result']['video']):
-				Method = 'Video'
-			elif (responce['result']['audio']):
-				Method = 'Audio'
-
-			print 'Method: ', Method
-			if (Method != 'Picture'):
-				postdata = '{ "jsonrpc": "2.0", "method": "'+Method+'Playlist.GetItems", "id": 1 }'
-				jsonresponce = urllib.urlopen('http://'+self.plugin.ip+':'+self.plugin.port+'/jsonrpc', postdata).read()
-#			print 'XBMC JSON-RPC content: ', jsonresponce
-				responce = json.loads(jsonresponce)
-				print 'eg.result: ', responce['result']['items'][responce['result']['current']]['file']
-
-				return responce['result']['items'][responce['result']['current']]['file']
+		responce = self.plugin.JSON_RPC.send('Player.GetActivePlayers')
+		if (responce != None):
+			Method = None
+			if (responce['result']['picture']): Method = 'Picture'
+			elif (responce['result']['video']): Method = 'Video'
+			elif (responce['result']['audio']): Method = 'Audio'
+			if Method:
+				print 'Method: ', Method
+				if (Method != 'Picture'):
+					responce = self.plugin.JSON_RPC.send(Method+'Playlist.GetItems')
+#					print 'eg.result: ', responce['items'][responce['current']]['file']
+					return responce['result']['items'][responce['result']['current']]['file']
+				else:
+					responce = self.plugin.HTTP_API.send('getcurrentlyplaying')
+					if responce:
+						if (responce['result']['Filename'] == ''):
+							print 'No file playing'
+						return responce['result']['Filename']
+					else:
+						raise self.Exceptions.ProgramNotRunning
 			else:
-				filehandle = urllib.urlopen('http://'+self.plugin.ip+':'+self.plugin.port+'/xbmcCmds/xbmcHttp?command=getcurrentlyplaying')
-				for lines in filehandle.readlines():
-					if (lines.find('Filename:') != -1):
-						print lines[lines.find('Filename:') + 9:].rstrip()
-						return lines[lines.find('Filename:') + 9:].rstrip()
-
-				filehandle.close()
-
+				print 'No file playing'
 		else:
-			filehandle = urllib.urlopen('http://'+self.plugin.ip+':'+self.plugin.port+'/xbmcCmds/xbmcHttp?command=getcurrentlyplaying')
-			for lines in filehandle.readlines():
-				if (lines.find('Filename:') != -1):
-					print 'eg.result: ', lines[lines.find('Filename:') + 9:].rstrip()
-					return lines[lines.find('Filename:') + 9:].rstrip()
-
-			filehandle.close()
-
-#    try:
-#      print "I'm here ;-)"
-#      url = 'http://'+self.plugin.xbmc.ip+':8080'
-#      jsonrpcurl = url + '/jsonrpc'
-#      postdata = '{"jsonrpc": "2.0", "method": "AudioLibrary.GetAlbums", "params": { "fields": ["album", "lyrics", "duration", "rating"], "end": 100 }, "id": "1"}'
-#      postdata = '{ "jsonrpc": "2.0", "method": "JSONRPC.Version", "id": 1 }'
-#      filehandle = urllib.urlopen('http://'+self.plugin.xbmc.ip+':8080/xbmcCmds/xbmcHttp?command=getcurrentlyplaying')
-#      filehandle = urllib.urlopen('http://127.0.0.1:8080/xbmcCmds/xbmcHttp?command=getcurrentlyplaying')
-#      print "I'm still here ;-)"
-#      filehandle = urllib.urlopen(jsonrpcurl, postdata).read()
-#      print filehandle
-#      for lines in filehandle.readlines():
-#        if (lines.find('Filename:') != -1):
-#          print lines[lines.find('Filename:') + 9:].rstrip()
-#          return lines[lines.find('Filename:') + 9:].rstrip()
-
-#    finally:
-#      filehandle.close()
-#      return filehandle
+			responce = self.plugin.HTTP_API.send('getcurrentlyplaying')
+			if responce:
+				if (responce['Filename'] == ''):
+					print 'No file playing'
+				return responce['Filename']
+			else:
+				raise self.Exceptions.ProgramNotRunning
 
 #class StopRepeating(eg.ActionClass):
 #    name = "Stop Repeating"
@@ -609,6 +645,8 @@ class XBMC(eg.PluginClass):
 
 #        self.AddAction(StopRepeating)
         self.xbmc = XBMCClient("EventGhost")
+        self.JSON_RPC = XBMC_JSON_RPC()
+        self.HTTP_API = XBMC_HTTP_API()
 
     def Configure(self, ip="127.0.0.1", port="80"):
 #    def Configure(self, ip="127.0.0.1", IPs = ['127.0.0.1', '192.168.0.100']):
@@ -640,6 +678,8 @@ class XBMC(eg.PluginClass):
 #            thread.start()
         except:
             raise self.Exceptions.ProgramNotRunning
+        self.JSON_RPC.connect(ip=ip, port=port)
+        self.HTTP_API.connect(ip=ip, port=port)
 
     def __stop__(self):
         try:
