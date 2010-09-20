@@ -656,41 +656,32 @@ class HTTPAPI(eg.ActionClass):
 			syntax.SetLabel(HTTPAPICommands[1][evt.GetSelection()])
 			description.SetLabel(HTTPAPICommands[2][evt.GetSelection()])
 			description.Wrap(480)
+		def GetText(nodes):
+			Text = ''
+			for node in nodes.childNodes:
+				if node.nodeType == Node.TEXT_NODE: Text += node.data
+				else: Text += GetText(node)
+			return Text
 
 #		responce = urllib.urlopen('http://wiki.xbmc.org/index.php?title=Web_Server_HTTP_API').read()
 		doc = xml.dom.minidom.parse("D:\\Program\\Util\\EventGhost\\plugins\\XBMCRepeat\\HTTPAPI.htm")
 
-		node = doc.getElementsByTagName("table")[2]
-		for node2 in node.getElementsByTagName("tr"):
-			if len(node2.getElementsByTagName("td")) < 3:
-				continue
-			node3 = node2.getElementsByTagName("td")[0]
-			for node4 in node3.childNodes:
-				if node4.nodeType == Node.TEXT_NODE:
-					HTTPAPICommands[1].append(node4.data.strip())
-					if (HTTPAPICommands[1][len(HTTPAPICommands[1])-1].find('(') != -1):
-						HTTPAPICommands[0].append(HTTPAPICommands[1][len(HTTPAPICommands[1])-1][:HTTPAPICommands[1][len(HTTPAPICommands[1])-1].find('(')])
-					else:
-						HTTPAPICommands[0].append(HTTPAPICommands[1][len(HTTPAPICommands[1])-1])
-				else:
-					print '<'+node4.tagName+'>'
-
-			node3 = node2.getElementsByTagName("td")[1]
-			Lines = ''
-			for node4 in node3.childNodes:
-				if node4.nodeType == Node.TEXT_NODE:
-					Lines += node4.data
-				else:
-					for node5 in node4.childNodes:
-						if node5.nodeType == Node.TEXT_NODE:
-							Lines += node5.data
+#		node = doc.getElementsByTagName("table")[2]
+		for node in doc.getElementsByTagName("table")[2:8]:
+			for node2 in node.getElementsByTagName("tr")[1:]:
+				node3 = node2.getElementsByTagName("td")[0]
+				for node4 in node3.childNodes:
+					if node4.nodeType == Node.TEXT_NODE:
+						Text = node4.data.strip()
+						HTTPAPICommands[1].append(Text)
+						Pos = Text.find('(')
+						if (Pos != -1):
+							HTTPAPICommands[0].append(Text[:Pos])
 						else:
-							for node6 in node5.childNodes:
-								if node6.nodeType == Node.TEXT_NODE:
-									Lines += node6.data
-								else:
-									print '<'+node6.tagName+'>'
-			HTTPAPICommands[2].append(Lines.strip())
+							HTTPAPICommands[0].append(Text)
+					else:
+						print '<'+node4.tagName+'>'
+				HTTPAPICommands[2].append(GetText(node2.getElementsByTagName("td")[1]).strip())
 
 		panel = eg.ConfigPanel()
 #		print HTTPAPICommands
