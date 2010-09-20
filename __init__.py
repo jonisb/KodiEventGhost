@@ -19,6 +19,7 @@
 from xbmcclient import *
 import urllib
 import json
+import ast
 
 # expose some information about the plugin through an eg.PluginInfo subclass
 
@@ -453,6 +454,34 @@ GAMEPAD_BUTTONS = (
 )),
 )
 
+# Support functions
+def ParseString2(text, filterFunc=None):
+	start = 0
+	chunks = []
+	last = len(text) - 1
+	while 1:
+		pos = text.find('{{', start)
+		if pos < 0:
+			break
+		if pos == last:
+			break
+		chunks.append(text[start:pos])
+		start = pos + 2
+		end = text.find('}}', start)
+		if end == -1:
+			raise SyntaxError("unmatched bracket")
+		word = text[start:end]
+		res = None
+		if filterFunc:
+			res = filterFunc(word)
+		if res is None:
+			res = eval(word, {}, eg.globals.__dict__)
+		chunks.append(unicode(res))
+		start = end + 2
+	chunks.append(text[start:])
+	return "".join(chunks)
+
+
 class ActionPrototype(eg.ActionClass):
     def __call__(self):
         try:
@@ -604,6 +633,58 @@ class GetCurrentlyPlayingFilename(eg.ActionClass):
 			else:
 				raise self.Exceptions.ProgramNotRunning
 
+class JSONRPC(eg.ActionClass):
+	description = "Run any XBMC JSON-RPC methods"
+
+	def __call__(self, method="JSONRPC.Introspect", param=""):
+		if param:
+			responce = self.plugin.JSON_RPC.send(method, ast.literal_eval(ParseString2(param)))
+		else:
+			responce = self.plugin.JSON_RPC.send(method)
+		if responce != None:
+			if responce.has_key('result'):
+				print 'Result:\n', json.dumps(responce['result'], sort_keys=True, indent=2)
+				return responce['result']
+			elif responce.has_key('error'):
+				print 'Error:\n', json.dumps(responce['error'], sort_keys=True, indent=2)
+			else:
+				print 'Got bad JSON-RPC responce', responce
+		else:
+			raise self.Exceptions.ProgramNotRunning
+
+	def Configure(self, method="JSONRPC.Introspect", param=""):
+		def OnMethodChange(evt):
+			description.SetLabel(descriptions[evt.GetSelection()])
+			description.Wrap(480)
+		panel = eg.ConfigPanel()
+		responce = self.plugin.JSON_RPC.send('JSONRPC.Introspect', json.loads('{"getdescriptions": true, "getpermissions": false}'))
+		if responce != None:
+			if responce.has_key('result'):
+				commands = []
+				descriptions = []
+				for command in responce['result']['commands']:
+					commands.append(command['command'])
+					descriptions.append(command['description'])
+				comboBoxControl = wx.ComboBox(panel, -1, value=method, choices=commands , style=wx.CB_READONLY)
+			elif responce.has_key('error'):
+				comboBoxControl = wx.ComboBox(panel, -1, value=method)
+				print 'Error', responce['error']
+			else:
+				comboBoxControl = wx.ComboBox(panel, -1, value=method)
+				print 'Got bad JSON-RPC responce', responce
+		else:
+			comboBoxControl = wx.ComboBox(panel, -1, value=method)
+		textControl2 = wx.TextCtrl(panel, -1, param, size=(500, -1))
+		panel.sizer.Add(wx.StaticText(panel, -1, "Choose a JSON-RPC Method and add parameter(s)"))
+		panel.sizer.Add(comboBoxControl)
+		panel.sizer.Add(textControl2)
+		panel.sizer.Add(wx.StaticBox(panel, -1, 'Method description:', size=(500, 150)))
+		description = wx.StaticText(panel, -1, descriptions[comboBoxControl.GetSelection()], (5, 70), style=wx.ALIGN_LEFT)
+		description.Wrap(480)
+		panel.Bind(wx.EVT_COMBOBOX, OnMethodChange)
+		while panel.Affirmed():
+			panel.SetResult(comboBoxControl.GetValue(), textControl2.GetValue())
+
 #class StopRepeating(eg.ActionClass):
 #    name = "Stop Repeating"
 #    description = "Stops a button repeating."
@@ -641,6 +722,7 @@ class XBMC(eg.PluginClass):
         self.AddActionsFromList(WINDOWS, ActionPrototype)
 
         TestGroup = self.AddGroup("Web API", "JSON-RPC/HTTP API")
+        TestGroup.AddAction(JSONRPC)
         TestGroup.AddAction(GetCurrentlyPlayingFilename)
 
 #        self.AddAction(StopRepeating)
