@@ -20,6 +20,8 @@ from xbmcclient import *
 import urllib
 import json
 import ast
+import xml.dom.minidom
+from xml.dom.minidom import Node
 
 # expose some information about the plugin through an eg.PluginInfo subclass
 
@@ -633,8 +635,88 @@ class GetCurrentlyPlayingFilename(eg.ActionClass):
 			else:
 				raise self.Exceptions.ProgramNotRunning
 
+class HTTPAPI(eg.ActionClass):
+	description = "Run any XBMC HTTP API command"
+
+	def __call__(self, command, param):
+		if param:
+			responce = self.plugin.HTTP_API.send(command, param)
+		else:
+			responce = self.plugin.HTTP_API.send(command)
+		if responce != None:
+			print 'Result:\n', responce
+			return responce
+		else:
+			raise self.Exceptions.ProgramNotRunning
+
+	def Configure(self, command="GetCurrentPlaylist", param=""):
+		HTTPAPICommands = [[], [], []]
+
+		def OnCommandChange(evt):
+			syntax.SetLabel(HTTPAPICommands[1][evt.GetSelection()])
+			description.SetLabel(HTTPAPICommands[2][evt.GetSelection()])
+			description.Wrap(480)
+
+#		responce = urllib.urlopen('http://wiki.xbmc.org/index.php?title=Web_Server_HTTP_API').read()
+		doc = xml.dom.minidom.parse("D:\\Program\\Util\\EventGhost\\plugins\\XBMCRepeat\\HTTPAPI.htm")
+
+		node = doc.getElementsByTagName("table")[2]
+		for node2 in node.getElementsByTagName("tr"):
+			if len(node2.getElementsByTagName("td")) < 3:
+				continue
+			node3 = node2.getElementsByTagName("td")[0]
+			for node4 in node3.childNodes:
+				if node4.nodeType == Node.TEXT_NODE:
+					HTTPAPICommands[1].append(node4.data.strip())
+					if (HTTPAPICommands[1][len(HTTPAPICommands[1])-1].find('(') != -1):
+						HTTPAPICommands[0].append(HTTPAPICommands[1][len(HTTPAPICommands[1])-1][:HTTPAPICommands[1][len(HTTPAPICommands[1])-1].find('(')])
+					else:
+						HTTPAPICommands[0].append(HTTPAPICommands[1][len(HTTPAPICommands[1])-1])
+				else:
+					print '<'+node4.tagName+'>'
+
+			node3 = node2.getElementsByTagName("td")[1]
+			Lines = ''
+			for node4 in node3.childNodes:
+				if node4.nodeType == Node.TEXT_NODE:
+					Lines += node4.data
+				else:
+					for node5 in node4.childNodes:
+						if node5.nodeType == Node.TEXT_NODE:
+							Lines += node5.data
+						else:
+							for node6 in node5.childNodes:
+								if node6.nodeType == Node.TEXT_NODE:
+									Lines += node6.data
+								else:
+									print '<'+node6.tagName+'>'
+			HTTPAPICommands[2].append(Lines.strip())
+
+		panel = eg.ConfigPanel()
+#		print HTTPAPICommands
+		comboBoxControl = wx.ComboBox(panel, -1, value=command, choices=HTTPAPICommands[0])
+		textControl1 = wx.TextCtrl(panel, -1, param, size=(500, -1))
+		panel.sizer.Add(wx.StaticText(panel, -1, "Choose or type in a HTTP API command and add parameter(s)"))
+		panel.sizer.Add(comboBoxControl)
+		panel.sizer.Add(textControl1)
+		panel.sizer.Add(wx.StaticText(panel, -1, "Command syntax:"))
+		if (comboBoxControl.GetSelection() != -1):
+			syntax = wx.TextCtrl(panel, -1, HTTPAPICommands[1][comboBoxControl.GetSelection()], (1, 70), size=(500,-1), style=wx.TE_READONLY)
+		else:
+			syntax = wx.TextCtrl(panel, -1, '', (1, 70), size=(500,-1), style=wx.TE_READONLY)
+		panel.sizer.Add(syntax)
+		panel.sizer.Add(wx.StaticBox(panel, -1, 'Command description:', size=(500, 150)))
+		if (comboBoxControl.GetSelection() != -1):
+			description = wx.StaticText(panel, -1, HTTPAPICommands[2][comboBoxControl.GetSelection()], (5, 105), style=wx.ALIGN_LEFT)
+		else:
+			description = wx.StaticText(panel, -1, '', (5, 105), style=wx.ALIGN_LEFT)
+		description.Wrap(480)
+		panel.Bind(wx.EVT_COMBOBOX, OnCommandChange)
+		while panel.Affirmed():
+			panel.SetResult(comboBoxControl.GetValue(), textControl1.GetValue())
+
 class JSONRPC(eg.ActionClass):
-	description = "Run any XBMC JSON-RPC methods"
+	description = "Run any XBMC JSON-RPC method"
 
 	def __call__(self, method="JSONRPC.Introspect", param=""):
 		if param:
@@ -723,6 +805,7 @@ class XBMC(eg.PluginClass):
 
         TestGroup = self.AddGroup("Web API", "JSON-RPC/HTTP API")
         TestGroup.AddAction(JSONRPC)
+        TestGroup.AddAction(HTTPAPI)
         TestGroup.AddAction(GetCurrentlyPlayingFilename)
 
 #        self.AddAction(StopRepeating)
