@@ -636,7 +636,7 @@ class GetCurrentlyPlayingFilename(eg.ActionClass):
 				raise self.Exceptions.ProgramNotRunning
 
 class HTTPAPI(eg.ActionClass):
-	description = "Run any XBMC HTTP API command"
+	description = "Run any <a href='http://wiki.xbmc.org/index.php?title=Web_Server_HTTP_API'>XBMC HTTP API</a> command."
 
 	def __call__(self, command, param):
 		if param:
@@ -650,12 +650,19 @@ class HTTPAPI(eg.ActionClass):
 			raise self.Exceptions.ProgramNotRunning
 
 	def Configure(self, command="GetCurrentPlaylist", param=""):
-		HTTPAPICommands = [[], [], []]
+		HTTPAPICommands = [[[],[],[]], [[],[],[]], [[],[],[]], [[],[],[]], [[],[],[]], [[],[],[]]]
 
-		def OnCommandChange(evt):
-			syntax.SetLabel(HTTPAPICommands[1][evt.GetSelection()])
-			description.SetLabel(HTTPAPICommands[2][evt.GetSelection()])
-			description.Wrap(480)
+		def OnCommandChange(event):
+			if event.GetEventObject() == comboBoxControl:
+				syntax.SetLabel(HTTPAPICommands[HBoxControl.GetSelection()][1][event.GetSelection()])
+				description.SetLabel(HTTPAPICommands[HBoxControl.GetSelection()][2][event.GetSelection()])
+				description.Wrap(480)
+			else:
+				value = comboBoxControl.GetValue()
+				comboBoxControl.Clear()
+				for i in HTTPAPICommands[event.GetSelection()][0]:
+					comboBoxControl.Append(i)
+				comboBoxControl.SetValue(value)
 		def GetText(nodes):
 			Text = ''
 			for node in nodes.childNodes:
@@ -666,39 +673,50 @@ class HTTPAPI(eg.ActionClass):
 #		responce = urllib.urlopen('http://wiki.xbmc.org/index.php?title=Web_Server_HTTP_API').read()
 		doc = xml.dom.minidom.parse("D:\\Program\\Util\\EventGhost\\plugins\\XBMCRepeat\\HTTPAPI.htm")
 
-#		node = doc.getElementsByTagName("table")[2]
+		Headers = []
+		for h3 in doc.getElementsByTagName("h3")[11:-1]:
+			for span in h3.getElementsByTagName("span"):
+				Headers.append(span.childNodes[0].data)
+		Header = 0
 		for node in doc.getElementsByTagName("table")[2:8]:
 			for node2 in node.getElementsByTagName("tr")[1:]:
 				node3 = node2.getElementsByTagName("td")[0]
 				for node4 in node3.childNodes:
 					if node4.nodeType == Node.TEXT_NODE:
 						Text = node4.data.strip()
-						HTTPAPICommands[1].append(Text)
+						HTTPAPICommands[Header][1].append(Text)
 						Pos = Text.find('(')
 						if (Pos != -1):
-							HTTPAPICommands[0].append(Text[:Pos])
+							HTTPAPICommands[Header][0].append(Text[:Pos])
 						else:
-							HTTPAPICommands[0].append(Text)
+							HTTPAPICommands[Header][0].append(Text)
 					else:
 						print '<'+node4.tagName+'>'
-				HTTPAPICommands[2].append(GetText(node2.getElementsByTagName("td")[1]).strip())
+				HTTPAPICommands[Header][2].append(GetText(node2.getElementsByTagName("td")[1]).strip())
+			Header += 1
 
 		panel = eg.ConfigPanel()
 #		print HTTPAPICommands
-		comboBoxControl = wx.ComboBox(panel, -1, value=command, choices=HTTPAPICommands[0])
+		HBoxControl = wx.ComboBox(panel, -1, value=Headers[0], choices=Headers, style=wx.CB_READONLY)
+		comboBoxControl = wx.ComboBox(panel, -1, value=command, choices=HTTPAPICommands[0][0])
 		textControl1 = wx.TextCtrl(panel, -1, param, size=(500, -1))
 		panel.sizer.Add(wx.StaticText(panel, -1, "Choose or type in a HTTP API command and add parameter(s)"))
-		panel.sizer.Add(comboBoxControl)
+		Test = wx.BoxSizer(wx.HORIZONTAL)
+		Test.Add(wx.StaticText(panel, -1, "Category"))
+		Test.Add(HBoxControl)
+		Test.Add(wx.StaticText(panel, -1, "Command"))
+		Test.Add(comboBoxControl)
+		panel.sizer.Add(Test)
 		panel.sizer.Add(textControl1)
 		panel.sizer.Add(wx.StaticText(panel, -1, "Command syntax:"))
 		if (comboBoxControl.GetSelection() != -1):
-			syntax = wx.TextCtrl(panel, -1, HTTPAPICommands[1][comboBoxControl.GetSelection()], (1, 70), size=(500,-1), style=wx.TE_READONLY)
+			syntax = wx.TextCtrl(panel, -1, HTTPAPICommands[0][1][comboBoxControl.GetSelection()], (1, 70), size=(500,-1), style=wx.TE_READONLY)
 		else:
 			syntax = wx.TextCtrl(panel, -1, '', (1, 70), size=(500,-1), style=wx.TE_READONLY)
 		panel.sizer.Add(syntax)
 		panel.sizer.Add(wx.StaticBox(panel, -1, 'Command description:', size=(500, 150)))
 		if (comboBoxControl.GetSelection() != -1):
-			description = wx.StaticText(panel, -1, HTTPAPICommands[2][comboBoxControl.GetSelection()], (5, 105), style=wx.ALIGN_LEFT)
+			description = wx.StaticText(panel, -1, HTTPAPICommands[0][2][comboBoxControl.GetSelection()], (5, 105), style=wx.ALIGN_LEFT)
 		else:
 			description = wx.StaticText(panel, -1, '', (5, 105), style=wx.ALIGN_LEFT)
 		description.Wrap(480)
@@ -707,7 +725,7 @@ class HTTPAPI(eg.ActionClass):
 			panel.SetResult(comboBoxControl.GetValue(), textControl1.GetValue())
 
 class JSONRPC(eg.ActionClass):
-	description = "Run any XBMC JSON-RPC method"
+	description = "Run any <a href='http://wiki.xbmc.org/index.php?title=JSON_RPC'>XBMC JSON-RPC</a> method"
 
 	def __call__(self, method="JSONRPC.Introspect", param=""):
 		if param:
