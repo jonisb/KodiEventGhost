@@ -638,18 +638,22 @@ class GetCurrentlyPlayingFilename(eg.ActionClass):
 class HTTPAPI(eg.ActionClass):
 	description = "Run any <a href='http://wiki.xbmc.org/index.php?title=Web_Server_HTTP_API'>XBMC HTTP API</a> command."
 
-	def __call__(self, command, param):
+	def __call__(self, command, param, category):
 		if param:
 			responce = self.plugin.HTTP_API.send(command, param)
 		else:
 			responce = self.plugin.HTTP_API.send(command)
 		if responce != None:
-			print 'Result:\n', responce
+#			print 'Result:\n', responce
+			if True:
+				import pprint
+				print 'Result:'
+				pprint.PrettyPrinter(indent=2).pprint(responce)
 			return responce
 		else:
 			raise self.Exceptions.ProgramNotRunning
 
-	def Configure(self, command="GetCurrentPlaylist", param=""):
+	def Configure(self, command="GetCurrentPlaylist", param="", category=0):
 		HTTPAPICommands = [[[],[],[]], [[],[],[]], [[],[],[]], [[],[],[]], [[],[],[]], [[],[],[]]]
 
 		def OnCommandChange(event):
@@ -697,8 +701,9 @@ class HTTPAPI(eg.ActionClass):
 
 		panel = eg.ConfigPanel()
 #		print HTTPAPICommands
-		HBoxControl = wx.ComboBox(panel, -1, value=Headers[0], choices=Headers, style=wx.CB_READONLY)
-		comboBoxControl = wx.ComboBox(panel, -1, value=command, choices=HTTPAPICommands[0][0])
+		HBoxControl = wx.ComboBox(panel, -1, value=Headers[category], choices=Headers, style=wx.CB_READONLY)
+		comboBoxControl = wx.ComboBox(panel, -1, value=command, choices=HTTPAPICommands[category][0])
+		comboBoxControl.SetStringSelection(command)
 		textControl1 = wx.TextCtrl(panel, -1, param, size=(500, -1))
 		panel.sizer.Add(wx.StaticText(panel, -1, "Choose or type in a HTTP API command and add parameter(s)"))
 		Category = wx.BoxSizer(wx.HORIZONTAL)
@@ -710,19 +715,19 @@ class HTTPAPI(eg.ActionClass):
 		panel.sizer.Add(textControl1)
 		panel.sizer.Add(wx.StaticText(panel, -1, "Command syntax:"))
 		if (comboBoxControl.GetSelection() != -1):
-			syntax = wx.TextCtrl(panel, -1, HTTPAPICommands[0][1][comboBoxControl.GetSelection()], (1, 70), size=(500,-1), style=wx.TE_READONLY)
+			syntax = wx.TextCtrl(panel, -1, HTTPAPICommands[category][1][comboBoxControl.GetSelection()], (1, 70), size=(500,-1), style=wx.TE_READONLY)
 		else:
 			syntax = wx.TextCtrl(panel, -1, '', (1, 70), size=(500,-1), style=wx.TE_READONLY)
 		panel.sizer.Add(syntax)
 		panel.sizer.Add(wx.StaticBox(panel, -1, 'Command description:', size=(500, 150)))
 		if (comboBoxControl.GetSelection() != -1):
-			description = wx.StaticText(panel, -1, HTTPAPICommands[0][2][comboBoxControl.GetSelection()], (5, 105), style=wx.ALIGN_LEFT)
+			description = wx.StaticText(panel, -1, HTTPAPICommands[category][2][comboBoxControl.GetSelection()], (5, 105), style=wx.ALIGN_LEFT)
 		else:
 			description = wx.StaticText(panel, -1, '', (5, 105), style=wx.ALIGN_LEFT)
 		description.Wrap(480)
 		panel.Bind(wx.EVT_COMBOBOX, OnCommandChange)
 		while panel.Affirmed():
-			panel.SetResult(comboBoxControl.GetValue(), textControl1.GetValue())
+			panel.SetResult(comboBoxControl.GetValue(), textControl1.GetValue(), HBoxControl.GetSelection())
 
 class JSONRPC(eg.ActionClass):
 	description = "Run any <a href='http://wiki.xbmc.org/index.php?title=JSON_RPC'>XBMC JSON-RPC</a> method"
@@ -734,7 +739,8 @@ class JSONRPC(eg.ActionClass):
 			responce = self.plugin.JSON_RPC.send(method)
 		if responce != None:
 			if responce.has_key('result'):
-				print 'Result:\n', json.dumps(responce['result'], sort_keys=True, indent=2)
+				if True:
+					print 'Result:\n', json.dumps(responce['result'], sort_keys=True, indent=2)
 				return responce['result']
 			elif responce.has_key('error'):
 				print 'Error:\n', json.dumps(responce['error'], sort_keys=True, indent=2)
