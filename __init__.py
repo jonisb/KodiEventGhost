@@ -638,14 +638,14 @@ class GetCurrentlyPlayingFilename(eg.ActionClass):
 class HTTPAPI(eg.ActionClass):
 	description = "Run any <a href='http://wiki.xbmc.org/index.php?title=Web_Server_HTTP_API'>XBMC HTTP API</a> command."
 
-	def __call__(self, command, param, category):
+	def __call__(self, command, param, category, log):
 		if param:
 			responce = self.plugin.HTTP_API.send(command, param)
 		else:
 			responce = self.plugin.HTTP_API.send(command)
 		if responce != None:
 #			print 'Result:\n', responce
-			if True:
+			if log:
 				import pprint
 				print 'Result:'
 				pprint.PrettyPrinter(indent=2).pprint(responce)
@@ -653,7 +653,7 @@ class HTTPAPI(eg.ActionClass):
 		else:
 			raise self.Exceptions.ProgramNotRunning
 
-	def Configure(self, command="GetCurrentPlaylist", param="", category=0):
+	def Configure(self, command="GetCurrentPlaylist", param="", category=0, log=True):
 		HTTPAPICommands = [[[],[],[]], [[],[],[]], [[],[],[]], [[],[],[]], [[],[],[]], [[],[],[]]]
 
 		def OnCommandChange(event):
@@ -705,12 +705,17 @@ class HTTPAPI(eg.ActionClass):
 		comboBoxControl = wx.ComboBox(panel, -1, value=command, choices=HTTPAPICommands[category][0])
 		comboBoxControl.SetStringSelection(command)
 		textControl1 = wx.TextCtrl(panel, -1, param, size=(500, -1))
-		panel.sizer.Add(wx.StaticText(panel, -1, "Choose or type in a HTTP API command and add parameter(s)"))
+		Top = wx.BoxSizer(wx.HORIZONTAL)
+		Top.Add(wx.StaticText(panel, -1, "Choose or type in a HTTP API command and add parameter(s)"))
+		CheckBox = wx.CheckBox(panel, -1, 'Show result in the log')
+		CheckBox.SetValue(log)
+		Top.Add(CheckBox,0,wx.LEFT,80)
 		Category = wx.BoxSizer(wx.HORIZONTAL)
 		Category.Add(wx.StaticText(panel, -1, "Category"))
 		Category.Add(HBoxControl)
 		Category.Add(wx.StaticText(panel, -1, "Command"))
 		Category.Add(comboBoxControl)
+		panel.sizer.Add(Top)
 		panel.sizer.Add(Category)
 		panel.sizer.Add(textControl1)
 		panel.sizer.Add(wx.StaticText(panel, -1, "Command syntax:"))
@@ -727,19 +732,19 @@ class HTTPAPI(eg.ActionClass):
 		description.Wrap(480)
 		panel.Bind(wx.EVT_COMBOBOX, OnCommandChange)
 		while panel.Affirmed():
-			panel.SetResult(comboBoxControl.GetValue(), textControl1.GetValue(), HBoxControl.GetSelection())
+			panel.SetResult(comboBoxControl.GetValue(), textControl1.GetValue(), HBoxControl.GetSelection(), CheckBox.GetValue())
 
 class JSONRPC(eg.ActionClass):
 	description = "Run any <a href='http://wiki.xbmc.org/index.php?title=JSON_RPC'>XBMC JSON-RPC</a> method"
 
-	def __call__(self, method="JSONRPC.Introspect", param=""):
+	def __call__(self, method="JSONRPC.Introspect", param="", log=True):
 		if param:
 			responce = self.plugin.JSON_RPC.send(method, ast.literal_eval(ParseString2(param)))
 		else:
 			responce = self.plugin.JSON_RPC.send(method)
 		if responce != None:
 			if responce.has_key('result'):
-				if True:
+				if log:
 					print 'Result:\n', json.dumps(responce['result'], sort_keys=True, indent=2)
 				return responce['result']
 			elif responce.has_key('error'):
@@ -749,7 +754,7 @@ class JSONRPC(eg.ActionClass):
 		else:
 			raise self.Exceptions.ProgramNotRunning
 
-	def Configure(self, method="JSONRPC.Introspect", param=""):
+	def Configure(self, method="JSONRPC.Introspect", param="", log=True):
 		Headers = [];OldHeader = ''
 
 		def OnMethodChange(event):
@@ -787,13 +792,19 @@ class JSONRPC(eg.ActionClass):
 		else:
 			comboBoxControl = wx.ComboBox(panel, -1, value=method)
 		textControl2 = wx.TextCtrl(panel, -1, param, size=(500, -1))
-		panel.sizer.Add(wx.StaticText(panel, -1, "Choose a JSON-RPC Method and add any parameter(s)"))
+		Top = wx.BoxSizer(wx.HORIZONTAL)
+		Top.Add(wx.StaticText(panel, -1, "Choose a JSON-RPC Method and add any parameter(s)"))
+		CheckBox = wx.CheckBox(panel, -1, 'Show result in the log')
+		CheckBox.SetValue(log)
+		Top.Add(CheckBox,0,wx.LEFT,100)
 #		panel.sizer.Add(comboBoxControl)
 		Category = wx.BoxSizer(wx.HORIZONTAL)
 		Category.Add(wx.StaticText(panel, -1, "Category"))
 		Category.Add(HBoxControl)
 		Category.Add(wx.StaticText(panel, -1, "Method"))
 		Category.Add(comboBoxControl)
+#		panel.sizer.Add(Top,1,wx.LEFT|wx.EXPAND,10)
+		panel.sizer.Add(Top)
 		panel.sizer.Add(Category)
 		panel.sizer.Add(textControl2)
 		panel.sizer.Add(wx.StaticBox(panel, -1, 'Method description:', size=(500, 150)))
@@ -801,7 +812,7 @@ class JSONRPC(eg.ActionClass):
 		description.Wrap(480)
 		panel.Bind(wx.EVT_COMBOBOX, OnMethodChange)
 		while panel.Affirmed():
-			panel.SetResult(HBoxControl.GetValue()+'.'+comboBoxControl.GetValue(), textControl2.GetValue())
+			panel.SetResult(HBoxControl.GetValue()+'.'+comboBoxControl.GetValue(), textControl2.GetValue(), CheckBox.GetValue())
 
 #class StopRepeating(eg.ActionClass):
 #    name = "Stop Repeating"
