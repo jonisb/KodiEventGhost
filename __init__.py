@@ -701,12 +701,12 @@ class HTTPAPI(eg.ActionClass):
 		comboBoxControl = wx.ComboBox(panel, -1, value=command, choices=HTTPAPICommands[0][0])
 		textControl1 = wx.TextCtrl(panel, -1, param, size=(500, -1))
 		panel.sizer.Add(wx.StaticText(panel, -1, "Choose or type in a HTTP API command and add parameter(s)"))
-		Test = wx.BoxSizer(wx.HORIZONTAL)
-		Test.Add(wx.StaticText(panel, -1, "Category"))
-		Test.Add(HBoxControl)
-		Test.Add(wx.StaticText(panel, -1, "Command"))
-		Test.Add(comboBoxControl)
-		panel.sizer.Add(Test)
+		Category = wx.BoxSizer(wx.HORIZONTAL)
+		Category.Add(wx.StaticText(panel, -1, "Category"))
+		Category.Add(HBoxControl)
+		Category.Add(wx.StaticText(panel, -1, "Command"))
+		Category.Add(comboBoxControl)
+		panel.sizer.Add(Category)
 		panel.sizer.Add(textControl1)
 		panel.sizer.Add(wx.StaticText(panel, -1, "Command syntax:"))
 		if (comboBoxControl.GetSelection() != -1):
@@ -744,19 +744,34 @@ class JSONRPC(eg.ActionClass):
 			raise self.Exceptions.ProgramNotRunning
 
 	def Configure(self, method="JSONRPC.Introspect", param=""):
-		def OnMethodChange(evt):
-			description.SetLabel(descriptions[evt.GetSelection()])
-			description.Wrap(480)
+		Headers = [];OldHeader = ''
+
+		def OnMethodChange(event):
+			if event.GetEventObject() == comboBoxControl:
+#				print
+				description.SetLabel(descriptions[Headers[HBoxControl.GetSelection()]][event.GetSelection()])
+				description.Wrap(480)
+			else:
+				comboBoxControl.Clear()
+				for i in commands[Headers[event.GetSelection()]]:
+					comboBoxControl.Append(i)
 		panel = eg.ConfigPanel()
 		responce = self.plugin.JSON_RPC.send('JSONRPC.Introspect', json.loads('{"getdescriptions": true, "getpermissions": false}'))
 		if responce != None:
 			if responce.has_key('result'):
-				commands = []
-				descriptions = []
+				commands = {}
+				descriptions = {}
 				for command in responce['result']['commands']:
-					commands.append(command['command'])
-					descriptions.append(command['description'])
-				comboBoxControl = wx.ComboBox(panel, -1, value=method, choices=commands , style=wx.CB_READONLY)
+					Header = command['command'][:command['command'].find('.')]
+					if OldHeader != Header:
+						Headers.append(Header)
+						commands[Header] = []
+						descriptions[Header] = []
+					OldHeader = Header
+					commands[Header].append(command['command'][command['command'].find('.')+1:])
+					descriptions[Header].append(command['description'])
+				HBoxControl = wx.ComboBox(panel, -1, value=method[:method.find('.')], choices=Headers, style=wx.CB_READONLY)
+				comboBoxControl = wx.ComboBox(panel, -1, value=method[method.find('.')+1:], choices=commands[Headers[HBoxControl.GetSelection()]] , style=wx.CB_READONLY)
 			elif responce.has_key('error'):
 				comboBoxControl = wx.ComboBox(panel, -1, value=method)
 				print 'Error', responce['error']
@@ -766,15 +781,21 @@ class JSONRPC(eg.ActionClass):
 		else:
 			comboBoxControl = wx.ComboBox(panel, -1, value=method)
 		textControl2 = wx.TextCtrl(panel, -1, param, size=(500, -1))
-		panel.sizer.Add(wx.StaticText(panel, -1, "Choose a JSON-RPC Method and add parameter(s)"))
-		panel.sizer.Add(comboBoxControl)
+		panel.sizer.Add(wx.StaticText(panel, -1, "Choose a JSON-RPC Method and add any parameter(s)"))
+#		panel.sizer.Add(comboBoxControl)
+		Category = wx.BoxSizer(wx.HORIZONTAL)
+		Category.Add(wx.StaticText(panel, -1, "Category"))
+		Category.Add(HBoxControl)
+		Category.Add(wx.StaticText(panel, -1, "Method"))
+		Category.Add(comboBoxControl)
+		panel.sizer.Add(Category)
 		panel.sizer.Add(textControl2)
 		panel.sizer.Add(wx.StaticBox(panel, -1, 'Method description:', size=(500, 150)))
-		description = wx.StaticText(panel, -1, descriptions[comboBoxControl.GetSelection()], (5, 70), style=wx.ALIGN_LEFT)
+		description = wx.StaticText(panel, -1, descriptions[Headers[HBoxControl.GetSelection()]][comboBoxControl.GetSelection()], (5, 70), style=wx.ALIGN_LEFT)
 		description.Wrap(480)
 		panel.Bind(wx.EVT_COMBOBOX, OnMethodChange)
 		while panel.Affirmed():
-			panel.SetResult(comboBoxControl.GetValue(), textControl2.GetValue())
+			panel.SetResult(HBoxControl.GetValue()+'.'+comboBoxControl.GetValue(), textControl2.GetValue())
 
 #class StopRepeating(eg.ActionClass):
 #    name = "Stop Repeating"
