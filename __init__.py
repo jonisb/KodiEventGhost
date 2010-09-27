@@ -654,82 +654,120 @@ class HTTPAPI(eg.ActionClass):
 			raise self.Exceptions.ProgramNotRunning
 
 	def Configure(self, command="GetCurrentPlaylist", param="", category=0, log=True):
-		HTTPAPICommands = [[[],[],[]], [[],[],[]], [[],[],[]], [[],[],[]], [[],[],[]], [[],[],[]]]
+		class record:
+			pass
+		httpapi = record()
+		httpapi.Headers = []
+		httpapi.Commands = []
+		OldCategory = category
 
+		def OnUpdate(event):
+			UpdateCommands()
+			try:
+				with open(os.path.join(os.path.abspath(os.path.split(__file__)[0]), 'httpapi.dat'), 'rb') as f:
+					import pickle
+					httpapi.Headers, httpapi.Commands = pickle.load(f)
+			except IOError:
+				print 'Failed to open: httpapi.dat'
+			else:
+				category = OldCategory
+				HBoxControl.Clear()
+				for i in httpapi.Headers:
+					HBoxControl.Append(i)
+				HBoxControl.SetValue(httpapi.Headers[category])
+				UpdateCommandCtrl(HBoxControl.GetSelection())
 		def OnCommandChange(event):
 			if event.GetEventObject() == comboBoxControl:
-				syntax.SetLabel(HTTPAPICommands[HBoxControl.GetSelection()][1][event.GetSelection()])
-				description.SetLabel(HTTPAPICommands[HBoxControl.GetSelection()][2][event.GetSelection()])
+				syntax.SetLabel(httpapi.Commands[HBoxControl.GetSelection()][1][event.GetSelection()])
+				description.SetLabel(httpapi.Commands[HBoxControl.GetSelection()][2][event.GetSelection()])
 				description.Wrap(480)
 			else:
-				value = comboBoxControl.GetValue()
-				comboBoxControl.Clear()
-				for i in HTTPAPICommands[event.GetSelection()][0]:
-					comboBoxControl.Append(i)
-				comboBoxControl.SetValue(value)
+				UpdateCommandCtrl(event.GetSelection())
+		def UpdateCommandCtrl(Selection):
+			value = comboBoxControl.GetValue()
+			comboBoxControl.Clear()
+			for i in httpapi.Commands[Selection][0]:
+				comboBoxControl.Append(i)
+			comboBoxControl.SetValue(value)
+
 		def GetText(nodes):
 			Text = ''
 			for node in nodes.childNodes:
 				if node.nodeType == Node.TEXT_NODE: Text += node.data
 				else: Text += GetText(node)
 			return Text
-
-#		responce = urllib.urlopen('http://wiki.xbmc.org/index.php?title=Web_Server_HTTP_API').read()
-		doc = xml.dom.minidom.parse("D:\\Program\\Util\\EventGhost\\plugins\\XBMCRepeat\\HTTPAPI.htm")
-
-		Headers = []
-		for h3 in doc.getElementsByTagName("h3")[11:-1]:
-			for span in h3.getElementsByTagName("span"):
-				Headers.append(span.childNodes[0].data)
-		Header = 0
-		for node in doc.getElementsByTagName("table")[2:8]:
-			for node2 in node.getElementsByTagName("tr")[1:]:
-				node3 = node2.getElementsByTagName("td")[0]
-				for node4 in node3.childNodes:
-					if node4.nodeType == Node.TEXT_NODE:
-						Text = node4.data.strip()
-						HTTPAPICommands[Header][1].append(Text)
-						Pos = Text.find('(')
-						if (Pos != -1):
-							HTTPAPICommands[Header][0].append(Text[:Pos])
+		def UpdateCommands():
+			httpapi.Headers = [];httpapi.Commands = []
+#			responce = urllib.urlopen('http://wiki.xbmc.org/index.php?title=Web_Server_HTTP_API').read()
+			doc = xml.dom.minidom.parse("D:\\Program\\Util\\EventGhost\\plugins\\XBMCRepeat\\HTTPAPI.htm")
+			for h3 in doc.getElementsByTagName("h3")[11:-1]:
+				for span in h3.getElementsByTagName("span"):
+					httpapi.Headers.append(span.childNodes[0].data)
+			Header = 0
+			for node in doc.getElementsByTagName("table")[2:8]:
+				for node2 in node.getElementsByTagName("tr")[1:]:
+					httpapi.Commands.append([[],[],[]])
+					node3 = node2.getElementsByTagName("td")[0]
+					for node4 in node3.childNodes:
+						if node4.nodeType == Node.TEXT_NODE:
+							Text = node4.data.strip()
+							httpapi.Commands[Header][1].append(Text)
+							Pos = Text.find('(')
+							if (Pos != -1):
+								httpapi.Commands[Header][0].append(Text[:Pos])
+							else:
+								httpapi.Commands[Header][0].append(Text)
 						else:
-							HTTPAPICommands[Header][0].append(Text)
-					else:
-						print '<'+node4.tagName+'>'
-				HTTPAPICommands[Header][2].append(GetText(node2.getElementsByTagName("td")[1]).strip())
-			Header += 1
+							print '<'+node4.tagName+'>'
+					httpapi.Commands[Header][2].append(GetText(node2.getElementsByTagName("td")[1]).strip())
+				Header += 1
+#			import os
+			with open(os.path.join(os.path.abspath(os.path.split(__file__)[0]), 'httpapi.dat'), 'wb') as f:
+				import pickle
+				pickle.dump((httpapi.Headers, httpapi.Commands), f, 1)
 
+		import os
+		try:
+			with open(os.path.join(os.path.abspath(os.path.split(__file__)[0]), 'httpapi.dat'), 'rb') as f:
+				import pickle
+				httpapi.Headers, httpapi.Commands = pickle.load(f)
+		except IOError:
+			category = 0
+			httpapi.Headers = ['No categorys']
+			httpapi.Commands = [[['No commands'],[''],['']]]
 		panel = eg.ConfigPanel()
-#		print HTTPAPICommands
-		HBoxControl = wx.ComboBox(panel, -1, value=Headers[category], choices=Headers, style=wx.CB_READONLY)
-		comboBoxControl = wx.ComboBox(panel, -1, value=command, choices=HTTPAPICommands[category][0])
+		HBoxControl = wx.ComboBox(panel, -1, value=httpapi.Headers[category], choices=httpapi.Headers, style=wx.CB_READONLY)
+		comboBoxControl = wx.ComboBox(panel, -1, value=command, choices=httpapi.Commands[category][0])
 		comboBoxControl.SetStringSelection(command)
 		textControl1 = wx.TextCtrl(panel, -1, param, size=(500, -1))
-		Top = wx.BoxSizer(wx.HORIZONTAL)
-		Top.Add(wx.StaticText(panel, -1, "Choose or type in a HTTP API command and add parameter(s)"))
-		CheckBox = wx.CheckBox(panel, -1, 'Show result in the log')
-		CheckBox.SetValue(log)
-		Top.Add(CheckBox,0,wx.LEFT,80)
 		Category = wx.BoxSizer(wx.HORIZONTAL)
 		Category.Add(wx.StaticText(panel, -1, "Category"))
 		Category.Add(HBoxControl)
 		Category.Add(wx.StaticText(panel, -1, "Command"))
 		Category.Add(comboBoxControl)
-		panel.sizer.Add(Top)
+		panel.sizer.Add(wx.StaticText(panel, -1, "Choose or type in a HTTP API command and add parameter(s)"))
 		panel.sizer.Add(Category)
 		panel.sizer.Add(textControl1)
 		panel.sizer.Add(wx.StaticText(panel, -1, "Command syntax:"))
 		if (comboBoxControl.GetSelection() != -1):
-			syntax = wx.TextCtrl(panel, -1, HTTPAPICommands[category][1][comboBoxControl.GetSelection()], (1, 70), size=(500,-1), style=wx.TE_READONLY)
+			syntax = wx.TextCtrl(panel, -1, httpapi.Commands[category][1][comboBoxControl.GetSelection()], (1, 70), size=(500,-1), style=wx.TE_READONLY)
 		else:
 			syntax = wx.TextCtrl(panel, -1, '', (1, 70), size=(500,-1), style=wx.TE_READONLY)
 		panel.sizer.Add(syntax)
 		panel.sizer.Add(wx.StaticBox(panel, -1, 'Command description:', size=(500, 150)))
 		if (comboBoxControl.GetSelection() != -1):
-			description = wx.StaticText(panel, -1, HTTPAPICommands[category][2][comboBoxControl.GetSelection()], (5, 105), style=wx.ALIGN_LEFT)
+			description = wx.StaticText(panel, -1, httpapi.Commands[category][2][comboBoxControl.GetSelection()], (5, 105), style=wx.ALIGN_LEFT)
 		else:
 			description = wx.StaticText(panel, -1, '', (5, 105), style=wx.ALIGN_LEFT)
 		description.Wrap(480)
+		CheckBox = wx.CheckBox(panel, -1, 'Show result in the log')
+		CheckBox.SetValue(log)
+		UpdateButton = wx.Button(panel, -1, 'Update')
+		UpdateButton.Bind(wx.EVT_BUTTON, OnUpdate)
+		Bottom = wx.BoxSizer(wx.HORIZONTAL)
+		Bottom.Add(CheckBox)
+		Bottom.Add(UpdateButton,0,wx.LEFT,280)
+		panel.sizer.Add(Bottom)
 		panel.Bind(wx.EVT_COMBOBOX, OnCommandChange)
 		while panel.Affirmed():
 			panel.SetResult(comboBoxControl.GetValue(), textControl1.GetValue(), HBoxControl.GetSelection(), CheckBox.GetValue())
@@ -784,12 +822,15 @@ class JSONRPC(eg.ActionClass):
 				HBoxControl = wx.ComboBox(panel, -1, value=method[:method.find('.')], choices=Headers, style=wx.CB_READONLY)
 				comboBoxControl = wx.ComboBox(panel, -1, value=method[method.find('.')+1:], choices=commands[Headers[HBoxControl.GetSelection()]] , style=wx.CB_READONLY)
 			elif responce.has_key('error'):
+				HBoxControl = wx.ComboBox(panel, -1, value=method[:method.find('.')], style=wx.CB_READONLY)
 				comboBoxControl = wx.ComboBox(panel, -1, value=method)
 				print 'Error', responce['error']
 			else:
+				HBoxControl = wx.ComboBox(panel, -1, value=method[:method.find('.')], style=wx.CB_READONLY)
 				comboBoxControl = wx.ComboBox(panel, -1, value=method)
 				print 'Got bad JSON-RPC responce', responce
 		else:
+			HBoxControl = wx.ComboBox(panel, -1, value=method[:method.find('.')], style=wx.CB_READONLY)
 			comboBoxControl = wx.ComboBox(panel, -1, value=method)
 		textControl2 = wx.TextCtrl(panel, -1, param, size=(500, -1))
 		Top = wx.BoxSizer(wx.HORIZONTAL)
@@ -799,7 +840,7 @@ class JSONRPC(eg.ActionClass):
 		Top.Add(CheckBox,0,wx.LEFT,100)
 #		panel.sizer.Add(comboBoxControl)
 		Category = wx.BoxSizer(wx.HORIZONTAL)
-		Category.Add(wx.StaticText(panel, -1, "Category"))
+		Category.Add(wx.StaticText(panel, -1, "Namespace"))
 		Category.Add(HBoxControl)
 		Category.Add(wx.StaticText(panel, -1, "Method"))
 		Category.Add(comboBoxControl)
