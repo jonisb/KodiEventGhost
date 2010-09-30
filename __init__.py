@@ -793,64 +793,100 @@ class JSONRPC(eg.ActionClass):
 			raise self.Exceptions.ProgramNotRunning
 
 	def Configure(self, method="JSONRPC.Introspect", param="", log=True):
-		Headers = [];OldHeader = ''
-
+		import os
+		import pickle
+		class record:
+			Namespaces = ['No namespaces']
+			Methods = {'No namespaces':['No methods']}
+			Descriptions = {'No namespaces':['']}
+		jsonrpc = record()
+		def OnUpdate(event):
+			UpdateMethods()
+			try:
+				with open(os.path.join(os.path.abspath(os.path.split(__file__)[0]), 'jsonrpc.dat'), 'rb') as f:
+					jsonrpc.Namespaces, jsonrpc.Methods, jsonrpc.Descriptions = pickle.load(f)
+			except IOError:
+				print 'Error opening: jsonrpc.dat'
+			else:
+				HBoxControl.Clear()
+				for i in jsonrpc.Namespaces:
+					HBoxControl.Append(i)
+				HBoxControl.SetValue(method[:method.find('.')])
+				UpdateMethodCtrl(HBoxControl.GetSelection())
+		def UpdateMethods():
+			jsonrpc.Namespaces = []
+			jsonrpc.Methods = {}
+			jsonrpc.Descriptions = {}
+			OldNamespace = ''
+			responce = self.plugin.JSON_RPC.send('JSONRPC.Introspect', json.loads('{"getdescriptions": true, "getpermissions": false}'))
+			if responce != None:
+				if responce.has_key('result'):
+					for method in responce['result']['commands']:
+						namespace = method['command'][:method['command'].find('.')]
+						if OldNamespace != namespace:
+							jsonrpc.Namespaces.append(namespace)
+							jsonrpc.Methods[namespace] = []
+							jsonrpc.Descriptions[namespace] = []
+						OldNamespace = namespace
+						jsonrpc.Methods[namespace].append(method['command'][method['command'].find('.')+1:])
+						jsonrpc.Descriptions[namespace].append(method['description'])
+					with open(os.path.join(os.path.abspath(os.path.split(__file__)[0]), 'jsonrpc.dat'), 'wb') as f:
+						pickle.dump((jsonrpc.Namespaces, jsonrpc.Methods, jsonrpc.Descriptions), f, 1)
+					return False
+				elif responce.has_key('error'):
+					print 'Error', responce['error']
+					return responce['error']
+				else:
+					print 'Got bad JSON-RPC responce', responce
+					return False
+			else:
+				return False
+		def UpdateMethodCtrl(Selection):
+			comboBoxControl.Clear()
+			for i in jsonrpc.Methods[jsonrpc.Namespaces[Selection]]:
+				comboBoxControl.Append(i)
+			comboBoxControl.SetValue(method[method.find('.')+1:])
 		def OnMethodChange(event):
 			if event.GetEventObject() == comboBoxControl:
-#				print
-				description.SetLabel(descriptions[Headers[HBoxControl.GetSelection()]][event.GetSelection()])
+				description.SetLabel(jsonrpc.Descriptions[jsonrpc.Namespaces[HBoxControl.GetSelection()]][event.GetSelection()])
 				description.Wrap(480)
 			else:
-				comboBoxControl.Clear()
-				for i in commands[Headers[event.GetSelection()]]:
-					comboBoxControl.Append(i)
+				UpdateMethodCtrl(event.GetSelection())
+#				comboBoxControl.Clear()
+#				for i in jsonrpc.Methods[jsonrpc.Namespaces[event.GetSelection()]]:
+#					comboBoxControl.Append(i)
+
 		panel = eg.ConfigPanel()
-		responce = self.plugin.JSON_RPC.send('JSONRPC.Introspect', json.loads('{"getdescriptions": true, "getpermissions": false}'))
-		if responce != None:
-			if responce.has_key('result'):
-				commands = {}
-				descriptions = {}
-				for command in responce['result']['commands']:
-					Header = command['command'][:command['command'].find('.')]
-					if OldHeader != Header:
-						Headers.append(Header)
-						commands[Header] = []
-						descriptions[Header] = []
-					OldHeader = Header
-					commands[Header].append(command['command'][command['command'].find('.')+1:])
-					descriptions[Header].append(command['description'])
-				HBoxControl = wx.ComboBox(panel, -1, value=method[:method.find('.')], choices=Headers, style=wx.CB_READONLY)
-				comboBoxControl = wx.ComboBox(panel, -1, value=method[method.find('.')+1:], choices=commands[Headers[HBoxControl.GetSelection()]] , style=wx.CB_READONLY)
-			elif responce.has_key('error'):
-				HBoxControl = wx.ComboBox(panel, -1, value=method[:method.find('.')], style=wx.CB_READONLY)
-				comboBoxControl = wx.ComboBox(panel, -1, value=method)
-				print 'Error', responce['error']
-			else:
-				HBoxControl = wx.ComboBox(panel, -1, value=method[:method.find('.')], style=wx.CB_READONLY)
-				comboBoxControl = wx.ComboBox(panel, -1, value=method)
-				print 'Got bad JSON-RPC responce', responce
-		else:
-			HBoxControl = wx.ComboBox(panel, -1, value=method[:method.find('.')], style=wx.CB_READONLY)
-			comboBoxControl = wx.ComboBox(panel, -1, value=method)
+		try:
+			with open(os.path.join(os.path.abspath(os.path.split(__file__)[0]), 'jsonrpc.dat'), 'rb') as f:
+				jsonrpc.Namespaces, jsonrpc.Methods, jsonrpc.Descriptions = pickle.load(f)
+		except IOError:
+			print 'Error opening: jsonrpc.dat'
+		HBoxControl = wx.ComboBox(panel, -1, value=method[:method.find('.')], choices=jsonrpc.Namespaces, style=wx.CB_READONLY)
+		comboBoxControl = wx.ComboBox(panel, -1, value=method[method.find('.')+1:], choices=jsonrpc.Methods[jsonrpc.Namespaces[HBoxControl.GetSelection()]] , style=wx.CB_READONLY)
 		textControl2 = wx.TextCtrl(panel, -1, param, size=(500, -1))
-		Top = wx.BoxSizer(wx.HORIZONTAL)
-		Top.Add(wx.StaticText(panel, -1, "Choose a JSON-RPC Method and add any parameter(s)"))
-		CheckBox = wx.CheckBox(panel, -1, 'Show result in the log')
-		CheckBox.SetValue(log)
-		Top.Add(CheckBox,0,wx.LEFT,100)
-#		panel.sizer.Add(comboBoxControl)
 		Category = wx.BoxSizer(wx.HORIZONTAL)
 		Category.Add(wx.StaticText(panel, -1, "Namespace"))
 		Category.Add(HBoxControl)
 		Category.Add(wx.StaticText(panel, -1, "Method"))
 		Category.Add(comboBoxControl)
-#		panel.sizer.Add(Top,1,wx.LEFT|wx.EXPAND,10)
-		panel.sizer.Add(Top)
+		panel.sizer.Add(wx.StaticText(panel, -1, "Choose a JSON-RPC Method and add any parameter(s)"))
 		panel.sizer.Add(Category)
 		panel.sizer.Add(textControl2)
 		panel.sizer.Add(wx.StaticBox(panel, -1, 'Method description:', size=(500, 150)))
-		description = wx.StaticText(panel, -1, descriptions[Headers[HBoxControl.GetSelection()]][comboBoxControl.GetSelection()], (5, 70), style=wx.ALIGN_LEFT)
+		if (comboBoxControl.GetSelection() != -1):
+			description = wx.StaticText(panel, -1, jsonrpc.Descriptions[jsonrpc.Namespaces[HBoxControl.GetSelection()]][comboBoxControl.GetSelection()], (5, 70), style=wx.ALIGN_LEFT)
+		else:
+			description = wx.StaticText(panel, -1, '', (5, 70), style=wx.ALIGN_LEFT)
 		description.Wrap(480)
+		Bottom = wx.BoxSizer(wx.HORIZONTAL)
+		CheckBox = wx.CheckBox(panel, -1, 'Show result in the log')
+		CheckBox.SetValue(log)
+		Bottom.Add(CheckBox)
+		UpdateButton = wx.Button(panel, -1, 'Update')
+		UpdateButton.Bind(wx.EVT_BUTTON, OnUpdate)
+		Bottom.Add(UpdateButton,0,wx.LEFT,280)
+		panel.sizer.Add(Bottom)
 		panel.Bind(wx.EVT_COMBOBOX, OnMethodChange)
 		while panel.Affirmed():
 			panel.SetResult(HBoxControl.GetValue()+'.'+comboBoxControl.GetValue(), textControl2.GetValue(), CheckBox.GetValue())
