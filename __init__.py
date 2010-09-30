@@ -635,6 +635,27 @@ class GetCurrentlyPlayingFilename(eg.ActionClass):
 			else:
 				raise self.Exceptions.ProgramNotRunning
 
+class SendNotification(eg.ActionClass):
+	description = "Send a notification to the connected XBMC"
+
+	def __call__(self, title, message):
+		try:
+			self.plugin.xbmc.send_notification(str(title), str(message))
+		except UnicodeEncodeError:
+			print "Error: ascii charecters only."
+		except:
+			raise self.Exceptions.ProgramNotRunning
+	def Configure(self, title='Hello', message='world'):
+		panel = eg.ConfigPanel()
+		Title = wx.TextCtrl(panel, -1, value=title)
+		Message = wx.TextCtrl(panel, -1, value=message)
+		panel.sizer.Add(wx.StaticText(panel, -1, "Title"))
+		panel.sizer.Add(Title)
+		panel.sizer.Add(wx.StaticText(panel, -1, "Message"))
+		panel.sizer.Add(Message)
+		while panel.Affirmed():
+			panel.SetResult(Title.GetValue(), Message.GetValue())
+
 class HTTPAPI(eg.ActionClass):
 	description = "Run any <a href='http://wiki.xbmc.org/index.php?title=Web_Server_HTTP_API'>XBMC HTTP API</a> command."
 
@@ -927,10 +948,11 @@ class XBMC(eg.PluginClass):
 #        ConfigurableGroup.AddAction(UpdateLibrary)
         self.AddActionsFromList(WINDOWS, ActionPrototype)
 
-        TestGroup = self.AddGroup("Web API", "JSON-RPC/HTTP API")
+        TestGroup = self.AddGroup("Experimental", "Experimental")
         TestGroup.AddAction(JSONRPC)
         TestGroup.AddAction(HTTPAPI)
         TestGroup.AddAction(GetCurrentlyPlayingFilename)
+        TestGroup.AddAction(SendNotification)
 
 #        self.AddAction(StopRepeating)
         self.xbmc = XBMCClient("EventGhost")
