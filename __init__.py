@@ -28,7 +28,7 @@ from xml.dom.minidom import Node
 eg.RegisterPlugin(
     name = "XBMCRepeat",
     author = "Joni Boren",
-    version = "0.5",
+    version = "0.5.5",
     kind = "program",
     canMultiLoad = True,
     createMacrosOnAdd = True,
@@ -719,8 +719,7 @@ class HTTPAPI(eg.ActionClass):
 			return Text
 		def UpdateCommands():
 			httpapi.Headers = [];httpapi.Commands = []
-#			responce = urllib.urlopen('http://wiki.xbmc.org/index.php?title=Web_Server_HTTP_API').read()
-			doc = xml.dom.minidom.parse("D:\\Program\\Util\\EventGhost\\plugins\\XBMCRepeat\\HTTPAPI.htm")
+			doc = xml.dom.minidom.parse(urllib.urlopen('http://wiki.xbmc.org/index.php?title=Web_Server_HTTP_API'))
 			for h3 in doc.getElementsByTagName("h3")[11:-1]:
 				for span in h3.getElementsByTagName("span"):
 					httpapi.Headers.append(span.childNodes[0].data)
