@@ -546,7 +546,7 @@ class XBMC_HTTP_API:
 
 	def send(self, method, params = ""):
 		try:
-			responce = urllib.urlopen('http://'+self.ip+':'+self.port+'/xbmcCmds/xbmcHttp?command='+method+'('+urllib.quote(params, ':\\')+')').readlines()
+			responce = urllib.urlopen('http://'+self.ip+':'+self.port+'/xbmcCmds/xbmcHttp?command='+method+'('+urllib.quote(eg.ParseString(params), ':\\')+')').readlines()
 		except IOError:
 			print 'HTTP API connection error'
 		else:
@@ -640,7 +640,7 @@ class SendNotification(eg.ActionClass):
 
 	def __call__(self, title, message):
 		try:
-			self.plugin.xbmc.send_notification(str(title), str(message))
+			self.plugin.xbmc.send_notification(str(eg.ParseString(title)), str(eg.ParseString(message)))
 		except UnicodeEncodeError:
 			print "Error: ascii charecters only."
 		except:
