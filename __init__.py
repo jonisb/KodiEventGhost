@@ -418,9 +418,18 @@ REMOTE_BUTTONS = (
     ("Remote*", "*", "", "star"),
     ("Remote#", "#", "", "hash"),
     ("RemoteClear", "Clear", "", "clear"),
+    ("Remoteguide", "guide", "", "guide"),
+    ("Remoteenter", "enter", "", "enter"),
+    ("Remotexbox", "xbox", "", "xbox"),
+    ("Remoteteletext", "teletext", "", "teletext"),
+    ("Remotered", "red", "", "red"),
+    ("Remotegreen", "green", "", "green"),
+    ("Remoteyellow", "yellow", "", "yellow"),
+    ("Remoteblue", "blue", "", "blue"),
+    ("Remotesubtitle", "subtitle", "", "subtitle"),
+    ("Remotelanguage", "language", "", "language"),
 )),
 )
-
 # Remote buttons handled by XBMC.  For a list of all buttons see: http://xbmc.org/wiki/?title=Keymap.xml#Gamepad_Buttons
 
 GAMEPAD_BUTTONS = (
