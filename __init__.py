@@ -558,7 +558,8 @@ class XBMC_HTTP_API:
 		try:
 			responce = urllib.urlopen('http://'+self.ip+':'+self.port+'/xbmcCmds/xbmcHttp?command='+method+'('+urllib.quote(eg.ParseString(params), ':\\')+')').readlines()
 		except IOError:
-			print 'HTTP API connection error:'+' http://'+self.ip+':'+self.port+'\n'+method+'('+urllib.quote(eg.ParseString(params), ':\\')+')'
+#			print 'HTTP API connection error:'+' http://'+self.ip+':'+self.port+'\n'+method+'('+urllib.quote(eg.ParseString(params), ':\\')+')'
+			eg.PrintError('HTTP API connection error:'+' http://'+self.ip+':'+self.port+'\n'+method+'('+urllib.quote(eg.ParseString(params), ':\\')+')')
 		else:
 			if (''.join(responce).find('<html>') != -1):
 				responce2 = {}
@@ -602,7 +603,8 @@ class XBMC_JSON_RPC:
 		try:
 			responce = urllib.urlopen('http://'+self.ip+':'+self.port+'/jsonrpc', json.dumps(self.jsoninit)).read()
 		except IOError:
-			print 'JSON-RPC connection error:'+' http://'+self.ip+':'+self.port+'\n'+json.dumps(self.jsoninit)
+#			print 'JSON-RPC connection error:'+' http://'+self.ip+':'+self.port+'\n'+json.dumps(self.jsoninit)
+			eg.PrintError('JSON-RPC connection error:'+' http://'+self.ip+':'+self.port+'\n'+json.dumps(self.jsoninit))
 		else:
 #			print responce
 			return json.loads(responce)
@@ -652,7 +654,8 @@ class SendNotification(eg.ActionClass):
 		try:
 			self.plugin.xbmc.send_notification(str(eg.ParseString(title)), str(eg.ParseString(message)))
 		except UnicodeEncodeError:
-			print "Error: ascii charecters only."
+#			print "Error: ascii charecters only."
+			eg.PrintError("Error: ascii charecters only.")
 		except:
 			raise self.Exceptions.ProgramNotRunning
 	def Configure(self, title='Hello', message='world'):
@@ -699,7 +702,8 @@ class HTTPAPI(eg.ActionClass):
 					import pickle
 					httpapi.Headers, httpapi.Commands = pickle.load(f)
 			except IOError:
-				print 'Failed to open: httpapi.dat'
+#				print 'Failed to open: httpapi.dat'
+				eg.PrintError('Failed to open: httpapi.dat')
 			else:
 				category = OldCategory
 				HBoxControl.Clear()
@@ -819,9 +823,11 @@ class JSONRPC(eg.ActionClass):
 					print 'Result:\n', json.dumps(responce['result'], sort_keys=True, indent=2)
 				return responce['result']
 			elif responce.has_key('error'):
-				print 'Error:\n', json.dumps(responce['error'], sort_keys=True, indent=2)
+#				print 'Error:\n', json.dumps(responce['error'], sort_keys=True, indent=2)
+				eg.PrintError('Error:\n', json.dumps(responce['error'], sort_keys=True, indent=2))
 			else:
-				print 'Got bad JSON-RPC responce', responce
+#				print 'Got bad JSON-RPC responce', responce
+				eg.PrintError('Got bad JSON-RPC responce', responce)
 		else:
 			raise self.Exceptions.ProgramNotRunning
 
@@ -839,7 +845,8 @@ class JSONRPC(eg.ActionClass):
 				with open(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2', 'jsonrpc.dat'), 'rb') as f:
 					jsonrpc.Namespaces, jsonrpc.Methods, jsonrpc.Descriptions = pickle.load(f)
 			except IOError:
-				print 'Error opening: jsonrpc.dat'
+#				print 'Error opening: jsonrpc.dat'
+				eg.PrintError('Error opening: jsonrpc.dat')
 			else:
 				HBoxControl.Clear()
 				for i in jsonrpc.Namespaces:
@@ -869,10 +876,12 @@ class JSONRPC(eg.ActionClass):
 						pickle.dump((jsonrpc.Namespaces, jsonrpc.Methods, jsonrpc.Descriptions), f, 1)
 					return False
 				elif responce.has_key('error'):
-					print 'Error', responce['error']
+#					print 'Error', responce['error']
+					eg.PrintError('Error', responce['error'])
 					return responce['error']
 				else:
-					print 'Got bad JSON-RPC responce', responce
+#					print 'Got bad JSON-RPC responce', responce
+					eg.PrintError('Got bad JSON-RPC responce', responce)
 					return False
 			else:
 				return False
@@ -896,7 +905,8 @@ class JSONRPC(eg.ActionClass):
 			with open(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2', 'jsonrpc.dat'), 'rb') as f:
 				jsonrpc.Namespaces, jsonrpc.Methods, jsonrpc.Descriptions = pickle.load(f)
 		except IOError:
-			print 'Error opening: jsonrpc.dat'
+#			print 'Error opening: jsonrpc.dat'
+			eg.PrintError('Error opening: jsonrpc.dat')
 		HBoxControl = wx.ComboBox(panel, -1, value=method[:method.find('.')], choices=jsonrpc.Namespaces, style=wx.CB_READONLY)
 		comboBoxControl = wx.ComboBox(panel, -1, value=method[method.find('.')+1:], choices=jsonrpc.Methods[jsonrpc.Namespaces[HBoxControl.GetSelection()]] , style=wx.CB_READONLY)
 		textControl2 = wx.TextCtrl(panel, -1, param, size=(500, -1))
