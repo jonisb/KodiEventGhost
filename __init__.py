@@ -695,7 +695,7 @@ class HTTPAPI(eg.ActionClass):
 		def OnUpdate(event):
 			UpdateCommands()
 			try:
-				with open(os.path.join(os.path.abspath(os.path.split(__file__)[0]), 'httpapi.dat'), 'rb') as f:
+				with open(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2', 'httpapi.dat'), 'rb') as f:
 					import pickle
 					httpapi.Headers, httpapi.Commands = pickle.load(f)
 			except IOError:
@@ -752,13 +752,16 @@ class HTTPAPI(eg.ActionClass):
 					httpapi.Commands[Header][2].append(GetText(node2.getElementsByTagName("td")[1]).strip())
 				Header += 1
 #			import os
-			with open(os.path.join(os.path.abspath(os.path.split(__file__)[0]), 'httpapi.dat'), 'wb') as f:
+			if not os.path.exists(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2')):
+				os.makedirs(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2'))
+
+			with open(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2', 'httpapi.dat'), 'wb') as f:
 				import pickle
 				pickle.dump((httpapi.Headers, httpapi.Commands), f, 1)
 
 		import os
 		try:
-			with open(os.path.join(os.path.abspath(os.path.split(__file__)[0]), 'httpapi.dat'), 'rb') as f:
+			with open(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2', 'httpapi.dat'), 'rb') as f:
 				import pickle
 				httpapi.Headers, httpapi.Commands = pickle.load(f)
 		except IOError:
@@ -833,7 +836,7 @@ class JSONRPC(eg.ActionClass):
 		def OnUpdate(event):
 			UpdateMethods()
 			try:
-				with open(os.path.join(os.path.abspath(os.path.split(__file__)[0]), 'jsonrpc.dat'), 'rb') as f:
+				with open(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2', 'jsonrpc.dat'), 'rb') as f:
 					jsonrpc.Namespaces, jsonrpc.Methods, jsonrpc.Descriptions = pickle.load(f)
 			except IOError:
 				print 'Error opening: jsonrpc.dat'
@@ -860,7 +863,9 @@ class JSONRPC(eg.ActionClass):
 						OldNamespace = namespace
 						jsonrpc.Methods[namespace].append(method['command'][method['command'].find('.')+1:])
 						jsonrpc.Descriptions[namespace].append(method['description'])
-					with open(os.path.join(os.path.abspath(os.path.split(__file__)[0]), 'jsonrpc.dat'), 'wb') as f:
+					if not os.path.exists(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2')):
+						os.makedirs(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2'))
+					with open(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2', 'jsonrpc.dat'), 'wb') as f:
 						pickle.dump((jsonrpc.Namespaces, jsonrpc.Methods, jsonrpc.Descriptions), f, 1)
 					return False
 				elif responce.has_key('error'):
@@ -888,7 +893,7 @@ class JSONRPC(eg.ActionClass):
 
 		panel = eg.ConfigPanel()
 		try:
-			with open(os.path.join(os.path.abspath(os.path.split(__file__)[0]), 'jsonrpc.dat'), 'rb') as f:
+			with open(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2', 'jsonrpc.dat'), 'rb') as f:
 				jsonrpc.Namespaces, jsonrpc.Methods, jsonrpc.Descriptions = pickle.load(f)
 		except IOError:
 			print 'Error opening: jsonrpc.dat'
@@ -934,7 +939,7 @@ class JSONRPC(eg.ActionClass):
 
 # And now we define the actual plugin:
 
-class XBMC(eg.PluginClass):
+class XBMC2(eg.PluginClass):
     def __init__(self):
 #        self.ip = "127.0.0.1"
 #        self.port = port
