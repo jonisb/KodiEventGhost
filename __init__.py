@@ -734,7 +734,7 @@ class HTTPAPI(eg.ActionClass):
 				for span in h3.getElementsByTagName("span"):
 					httpapi.Headers.append(span.childNodes[0].data)
 			Header = 0
-			for node in doc.getElementsByTagName("table")[2:8]:
+			for node in doc.getElementsByTagName("table")[3:8]:
 				for node2 in node.getElementsByTagName("tr")[1:]:
 					httpapi.Commands.append([[],[],[]])
 					node3 = node2.getElementsByTagName("td")[0]
