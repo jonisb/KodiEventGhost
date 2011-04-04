@@ -26,13 +26,13 @@ from xml.dom.minidom import Node
 # expose some information about the plugin through an eg.PluginInfo subclass
 
 eg.RegisterPlugin(
-    name = "XBMCRepeat",
+    name = "XBMC2",
     author = "Joni Boren",
-    version = "0.5.5",
+    version = "0.5.6",
     kind = "program",
     canMultiLoad = True,
     createMacrosOnAdd = True,
-    url = "http://www.eventghost.org/forum/viewtopic.php?t=1005",
+    url = "http://www.eventghost.net/forum/viewtopic.php?t=1005",
     description = "Adds actions buttons to control <a href='http://www.xbmc.org/'>XBMC</a>.",
     icon = (
         "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAAsRAAALEQF/ZF+RAAAA"
@@ -557,7 +557,7 @@ class XBMC_HTTP_API:
 		try:
 			responce = urllib.urlopen('http://'+self.ip+':'+self.port+'/xbmcCmds/xbmcHttp?command='+method+'('+urllib.quote(eg.ParseString(params), ':\\')+')').readlines()
 		except IOError:
-			print 'HTTP API connection error'
+			print 'HTTP API connection error:'+' http://'+self.ip+':'+self.port+'\n'+method+'('+urllib.quote(eg.ParseString(params), ':\\')+')'
 		else:
 			if (''.join(responce).find('<html>') != -1):
 				responce2 = {}
@@ -601,7 +601,7 @@ class XBMC_JSON_RPC:
 		try:
 			responce = urllib.urlopen('http://'+self.ip+':'+self.port+'/jsonrpc', json.dumps(self.jsoninit)).read()
 		except IOError:
-			print 'JSON-RPC connection error'
+			print 'JSON-RPC connection error:'+' http://'+self.ip+':'+self.port+'\n'+json.dumps(self.jsoninit)
 		else:
 #			print responce
 			return json.loads(responce)
