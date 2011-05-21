@@ -599,7 +599,11 @@ class XBMC_JSON_RPC:
 
 	def send(self, method, params = None):
 		self.jsoninit['method'] = method
-		if params: self.jsoninit['params'] = params
+		if params:
+			self.jsoninit['params'] = params
+		else:
+			if self.jsoninit.has_key('params'):
+				del self.jsoninit['params']
 		try:
 			responce = urllib.urlopen('http://'+self.ip+':'+self.port+'/jsonrpc', json.dumps(self.jsoninit)).read()
 		except IOError:
