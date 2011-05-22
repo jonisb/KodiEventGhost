@@ -861,34 +861,65 @@ class JSONRPC(eg.ActionClass):
 			jsonrpc.Namespaces = []
 			jsonrpc.Methods = {}
 			jsonrpc.Descriptions = {}
-			OldNamespace = ''
-			responce = self.plugin.JSON_RPC.send('JSONRPC.Introspect', json.loads('{"getdescriptions": true, "getpermissions": false}'))
-			if responce != None:
-				if responce.has_key('result'):
-					for method in responce['result']['commands']:
-						namespace = method['command'][:method['command'].find('.')]
-						if OldNamespace != namespace:
-							jsonrpc.Namespaces.append(namespace)
-							jsonrpc.Methods[namespace] = []
-							jsonrpc.Descriptions[namespace] = []
-						OldNamespace = namespace
-						jsonrpc.Methods[namespace].append(method['command'][method['command'].find('.')+1:])
-						jsonrpc.Descriptions[namespace].append(method['description'])
-					if not os.path.exists(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2')):
-						os.makedirs(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2'))
-					with open(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2', 'jsonrpc.dat'), 'wb') as f:
-						pickle.dump((jsonrpc.Namespaces, jsonrpc.Methods, jsonrpc.Descriptions), f, 1)
-					return False
-				elif responce.has_key('error'):
+			responce = self.plugin.JSON_RPC.send('JSONRPC.Version')
+			if responce['result']['version'] > 2:
+				responce = self.plugin.JSON_RPC.send('JSONRPC.Introspect', json.loads('{"filterbytransport": false}'))
+				if responce != None:
+					if responce.has_key('result'):
+						for method in responce['result']['methods']:
+							namespace = method[:method.find('.')]
+							if namespace not in jsonrpc.Namespaces:
+								jsonrpc.Namespaces.append(namespace)
+								jsonrpc.Methods[namespace] = []
+								jsonrpc.Descriptions[namespace] = []
+							jsonrpc.Methods[namespace].append(method[method.find('.')+1:])
+							if responce['result']['methods'][method].has_key('description'):
+								jsonrpc.Descriptions[namespace].append(responce['result']['methods'][method]['description'])
+							else:
+								jsonrpc.Descriptions[namespace].append('')
+						if not os.path.exists(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2')):
+							os.makedirs(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2'))
+						with open(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2', 'jsonrpc.dat'), 'wb') as f:
+							pickle.dump((jsonrpc.Namespaces, jsonrpc.Methods, jsonrpc.Descriptions), f, 1)
+						return False
+					elif responce.has_key('error'):
 #					print 'Error', responce['error']
-					eg.PrintError('Error', responce['error'])
-					return responce['error']
-				else:
+						eg.PrintError('Error', responce['error'])
+						return responce['error']
+					else:
 #					print 'Got bad JSON-RPC responce', responce
-					eg.PrintError('Got bad JSON-RPC responce', responce)
+						eg.PrintError('Got bad JSON-RPC responce', responce)
+						return False
+				else:
 					return False
+			
 			else:
-				return False
+				responce = self.plugin.JSON_RPC.send('JSONRPC.Introspect', json.loads('{"getdescriptions": true, "getpermissions": false}'))
+				if responce != None:
+					if responce.has_key('result'):
+						for method in responce['result']['commands']:
+							namespace = method['command'][:method['command'].find('.')]
+							if namespace not in jsonrpc.Namespaces:
+								jsonrpc.Namespaces.append(namespace)
+								jsonrpc.Methods[namespace] = []
+								jsonrpc.Descriptions[namespace] = []
+							jsonrpc.Methods[namespace].append(method['command'][method['command'].find('.')+1:])
+							jsonrpc.Descriptions[namespace].append(method['description'])
+						if not os.path.exists(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2')):
+							os.makedirs(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2'))
+						with open(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2', 'jsonrpc.dat'), 'wb') as f:
+							pickle.dump((jsonrpc.Namespaces, jsonrpc.Methods, jsonrpc.Descriptions), f, 1)
+						return False
+					elif responce.has_key('error'):
+#					print 'Error', responce['error']
+						eg.PrintError('Error', responce['error'])
+						return responce['error']
+					else:
+#					print 'Got bad JSON-RPC responce', responce
+						eg.PrintError('Got bad JSON-RPC responce', responce)
+						return False
+				else:
+					return False
 		def UpdateMethodCtrl(Selection):
 			comboBoxControl.Clear()
 			for i in jsonrpc.Methods[jsonrpc.Namespaces[Selection]]:
