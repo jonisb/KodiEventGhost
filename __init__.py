@@ -369,7 +369,7 @@ UNCATEGORIZED_ACTIONS = (
 )),
 )
 
-# Remote buttons handled by XBMC.  For a list of all buttons see: http://xbmc.org/wiki/?title=Keymap.xml#Remote_Buttons
+# Remote buttons handled by XBMC.  For a list of all buttons see: http://wiki.xbmc.org/?title=Keymap.xml#Remote_Section
 
 REMOTE_BUTTONS = (
 (eg.ActionGroup, "Remote", "Remote", None, (
@@ -431,7 +431,7 @@ REMOTE_BUTTONS = (
     ("Remotelanguage", "language", "", "language"),
 )),
 )
-# Remote buttons handled by XBMC.  For a list of all buttons see: http://xbmc.org/wiki/?title=Keymap.xml#Gamepad_Buttons
+# Remote buttons handled by XBMC.  For a list of all buttons see: http://wiki.xbmc.org/?title=Keymap.xml#Gamepad_Section
 
 GAMEPAD_BUTTONS = (
 (eg.ActionGroup, "Gamepad", "Gamepad", None, (
