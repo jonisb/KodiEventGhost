@@ -145,11 +145,11 @@ GENERAL_ACTIONS = (
     ("ParentDir", "ParentDir", "Go up a folder to the parent folder.", "parentdir"),
     ("PreviousMenu", "PreviousMenu", "Go back to the previous menu screen.", "previousmenu"),
     ("Info", "Info", "Show the information about the currently highlighted item, or currently playing item.", "info"),
-    ("Screenshot", "Screenshot", "Take a screenshot of the current screen..", "Screenshot"),
+    ("Screenshot", "Screenshot", "Take a screenshot of the current screen.", "Screenshot"),
     ("PowerOff", "PowerOff", "Shutdown and power off.", "PowerOff"),
-    ("VolumeUp", "VolumeUp", "Increase the volume of playback..", "VolumeUp"),
-    ("VolumeDown", "VolumeDown", "Decrease the volume of playback..", "VolumeDown"),
-    ("Mute", "Mute", "Mute the volume..", "Mute"),
+    ("VolumeUp", "VolumeUp", "Increase the volume of playback.", "VolumeUp"),
+    ("VolumeDown", "VolumeDown", "Decrease the volume of playback.", "VolumeDown"),
+    ("Mute", "Mute", "Mute the volume.", "Mute"),
     ("ContextMenu", "ContextMenu", "Pops up a contextual menu.", "ContextMenu"),
     ("ScrollUp", "ScrollUp", "Variable speed scroll up for analog keys (stick or triggers).", "ScrollUp"),
     ("ScrollDown", "ScrollDown", "Variable speed scroll down for analog keys (stick or triggers).", "ScrollDown"),
@@ -171,13 +171,13 @@ GENERAL_ACTIONS = (
 
 MEDIA_PLAYING_ACTIONS = (
 (eg.ActionGroup, "MediaPlaying", "Media playing", None, (
-    ("Play", "Play", "Play the selected item (or folder of items), or unpause a paused item..", "Play"),
+    ("Play", "Play", "Play the selected item (or folder of items), or unpause a paused item.", "Play"),
     ("Pause", "Pause", "Pause the currently playing item.", "Pause"),
     ("Stop", "Stop", "Stop the currently playing item.", "Stop"),
-    ("FastForward", "FastForward", "Toggle the fastforward speed between normal play, 2x, 4x, 8x, 16x, and 32x..", "FastForward"),
-    ("Rewind", "Rewind", "Toggle the rewind speed between normal play, 2x, 4x, 8x, 16x, and 32x..", "Rewind"),
-    ("SkipNext", "SkipNext", "Skip to the next item in a playlist..", "SkipNext"),
-    ("SkipPrevious", "SkipPrevious", "Skip to the previous item in a playlist..", "SkipPrevious"),
+    ("FastForward", "FastForward", "Toggle the fastforward speed between normal play, 2x, 4x, 8x, 16x, and 32x.", "FastForward"),
+    ("Rewind", "Rewind", "Toggle the rewind speed between normal play, 2x, 4x, 8x, 16x, and 32x.", "Rewind"),
+    ("SkipNext", "SkipNext", "Skip to the next item in a playlist.", "SkipNext"),
+    ("SkipPrevious", "SkipPrevious", "Skip to the previous item in a playlist.", "SkipPrevious"),
     ("FullScreen", "FullScreen", "Toggles fullscreen modes (either visualisation or video playback).", "FullScreen"),
     ("CodecInfo", "CodecInfo", "Show codec information about the currently playing item (during video or visualisation playback).", "CodecInfo"),
     ("AnalogSeekForward", "AnalogSeekForward", "Variable speed seeking for analog keys (stick or triggers).", "AnalogSeekForward"),
@@ -213,23 +213,23 @@ PLAYLIST_ACTIONS = (
 
 FULLSCREEN_VIDEO_ACTIONS = (
 (eg.ActionGroup, "FullscreenVideo", "FullScreen Video", None, (
-    ("StepForward", "StepForward", "Step forward 1% in the movie..", "StepForward"),
-    ("StepBack", "StepBack", "Step back 1% in the movie..", "StepBack"),
-    ("BigStepForward", "BigStepForward", "Step forward 10% in the movie..", "BigStepForward"),
-    ("BigStepBack", "BigStepBack", "Step back 10% in the movie..", "BigStepBack"),
-    ("SmallStepBack", "SmallStepBack", "Step back 7 seconds in the current video..", "SmallStepBack"),
-    ("OSD", "OSD", "Toggles the OSD while playing an item..", "OSD"),
-    ("AspectRatio", "AspectRatio", "Toggle through the various aspect ratio modes (Normal is the preferred option)..", "AspectRatio"),
-    ("ShowSubtitles", "ShowSubtitles", "Toggles whether subtitles are shown or not..", "ShowSubtitles"),
-    ("NextSubtitle", "NextSubtitle", "Change to the next subtitle language, if there is more than one..", "NextSubtitle"),
+    ("StepForward", "StepForward", "Step forward 1% in the movie.", "StepForward"),
+    ("StepBack", "StepBack", "Step back 1% in the movie.", "StepBack"),
+    ("BigStepForward", "BigStepForward", "Step forward 10% in the movie.", "BigStepForward"),
+    ("BigStepBack", "BigStepBack", "Step back 10% in the movie.", "BigStepBack"),
+    ("SmallStepBack", "SmallStepBack", "Step back 7 seconds in the current video.", "SmallStepBack"),
+    ("OSD", "OSD", "Toggles the OSD while playing an item.", "OSD"),
+    ("AspectRatio", "AspectRatio", "Toggle through the various aspect ratio modes (Normal is the preferred option).", "AspectRatio"),
+    ("ShowSubtitles", "ShowSubtitles", "Toggles whether subtitles are shown or not.", "ShowSubtitles"),
+    ("NextSubtitle", "NextSubtitle", "Change to the next subtitle language, if there is more than one.", "NextSubtitle"),
     ("SubtitleDelayMinus", "SubtitleDelayMinus", "Decrease the delay amount of subtitles (use if subtitles are displaying too late).", "SubtitleDelayMinus"),
     ("SubtitleDelayPlus", "SubtitleDelayPlus", "Increase the delay amount of subtitles (use if subtitles are displaying too early).", "SubtitleDelayPlus"),
     ("AudioDelayMinus", "AudioDelayMinus", "Decrease the delay amount of audio (use if audio is being heard too early).", "AudioDelayMinus"),
     ("AudioDelayPlus", "AudioDelayPlus", "Increase the delay amount of audio (use if audio is being heard too late).", "AudioDelayPlus"),
-    ("AudioNextLanguage", "AudioNextLanguage", "Change to the next audio track in a video with multiple audio tracks..", "AudioNextLanguage"),
+    ("AudioNextLanguage", "AudioNextLanguage", "Change to the next audio track in a video with multiple audio tracks.", "AudioNextLanguage"),
     ("mplayerosd", "mplayerosd", "Show Mplayer's OSD.", "mplayerosd"),
     ("ShowTime", "ShowTime", "Used to show the current play time in music + video playback.", "ShowTime"),
-    ("ShowVideoMenu", "ShowVideoMenu", "Go to the DVD Video menu when playing a DVD..", "ShowVideoMenu"),
+    ("ShowVideoMenu", "ShowVideoMenu", "Go to the DVD Video menu when playing a DVD.", "ShowVideoMenu"),
 )),
 )
 
@@ -237,10 +237,10 @@ FULLSCREEN_VIDEO_ACTIONS = (
 
 SLIDESHOW_ACTIONS = (
 (eg.ActionGroup, "PictureSlideshow", "Picture slideshow", None, (
-    ("NextPicture", "NextPicture", "Move to the next picture in a slideshow..", "NextPicture"),
-    ("PreviousPicture", "PreviousPicture", "Move to the previous picture in a slideshow..", "PreviousPicture"),
-    ("ZoomOut", "ZoomOut", "Used in picture or slideshow to zoom out of the current image..", "ZoomOut"),
-    ("ZoomIn", "ZoomIn", "Used in picture or slideshow to zoom in to the current image..", "ZoomIn"),
+    ("NextPicture", "NextPicture", "Move to the next picture in a slideshow.", "NextPicture"),
+    ("PreviousPicture", "PreviousPicture", "Move to the previous picture in a slideshow.", "PreviousPicture"),
+    ("ZoomOut", "ZoomOut", "Used in picture or slideshow to zoom out of the current image.", "ZoomOut"),
+    ("ZoomIn", "ZoomIn", "Used in picture or slideshow to zoom in to the current image.", "ZoomIn"),
     ("ZoomNormal", "ZoomNormal", "Normal (fullscreen) viewing in My Pictures.", "ZoomNormal"),
     ("ZoomLevel1", "ZoomLevel1", "Zoom to 120% in My Pictures.", "ZoomLevel1"),
     ("ZoomLevel2", "ZoomLevel2", "Zoom to 150% in My Pictures.", "ZoomLevel2"),
@@ -251,7 +251,7 @@ SLIDESHOW_ACTIONS = (
     ("ZoomLevel7", "ZoomLevel7", "Zoom to 900% in My Pictures.", "ZoomLevel7"),
     ("ZoomLevel8", "ZoomLevel8", "Zoom to 1350% in My Pictures.", "ZoomLevel8"),
     ("ZoomLevel9", "ZoomLevel9", "Zoom to 2000% in My Pictures.", "ZoomLevel9"),
-    ("AnalogMove", "AnalogMove", "Move in the calibration screens, and while zoomed in My Pictures..", "AnalogMove"),
+    ("AnalogMove", "AnalogMove", "Move in the calibration screens, and while zoomed in My Pictures.", "AnalogMove"),
     ("Rotate", "Rotate", "Rotate a picture in My Pictures.", "Rotate"),
 )),
 )
@@ -261,7 +261,7 @@ CALIBRATION_ACTIONS = (
 (eg.ActionGroup, "ScreenCalibration", "Screen calibration", None, (
     ("NextCalibration", "NextCalibration", "Used in Video + GUI calibration.", "NextCalibration"),
     ("ResetCalibration", "ResetCalibration", "Used in Video + GUI calibration.", "ResetCalibration"),
-    ("AnalogMove", "AnalogMove", "Move in the calibration screens, and while zoomed in My Pictures..", "AnalogMove"),
+    ("AnalogMove", "AnalogMove", "Move in the calibration screens, and while zoomed in My Pictures.", "AnalogMove"),
     ("NextResolution", "NextResolution", "Used in Video calibration.", "NextResolution"),
 )),
 )
@@ -270,17 +270,17 @@ CALIBRATION_ACTIONS = (
 
 FILEMANAGER_ACTIONS = (
 (eg.ActionGroup, "FileManager", "File Manager", None, (
-    ("Delete", "Delete", "Used in My Files to delete a file..", "Delete"),
-    ("Copy", "Copy", "Used in My Files to copy a file..", "Copy"),
-    ("Move", "Move", "Used in My Files to move a file..", "Move"),
-    ("Rename", "Rename", "Used in My Files to rename a file..", "Rename"),
+    ("Delete", "Delete", "Used in My Files to delete a file.", "Delete"),
+    ("Copy", "Copy", "Used in My Files to copy a file.", "Copy"),
+    ("Move", "Move", "Used in My Files to move a file.", "Move"),
+    ("Rename", "Rename", "Used in My Files to rename a file.", "Rename"),
 )),
 )
 # Actions handled by XBMC.  For a list of all actions see: http://xbmc.org/wiki/?title=Action_IDs#Actions_available_in_the_on-screen_keyboard
 
 ON_SCREEN_KEYBOARD_ACTIONS = (
 (eg.ActionGroup, "On-screenKeyboard", "On-screen keyboard", None, (
-    ("BackSpace", "BackSpace", "Used in the virtual keyboards to delete one letter..", "BackSpace"),
+    ("BackSpace", "BackSpace", "Used in the virtual keyboards to delete one letter.", "BackSpace"),
     ("Shift", "Shift", "Used in Virtual Keyboard to switch to upper or lower case letters.", "Shift"),
     ("Symbols", "Symbols", "Used in Virtual Keyboard to switch to or from symbols mode.", "Symbols"),
     ("CursorLeft", "CursorLeft", "Used in Virtual Keyboard to move the current cursor point to the left.", "CursorLeft"),
@@ -292,7 +292,7 @@ ON_SCREEN_KEYBOARD_ACTIONS = (
 
 VISUALISATION_ACTIONS = (
 (eg.ActionGroup, "MusicVisualisation", "Music visualisation", None, (
-    ("OSD", "OSD", "Toggles the OSD while playing an item..", "OSD"),
+    ("OSD", "OSD", "Toggles the OSD while playing an item.", "OSD"),
     ("ShowPreset", "ShowPreset", "Shows the current visualisation preset (milkdrop/spectrum).", "ShowPreset"),
     ("PresetList", "PresetList", "Pops up the visualisation preset list (milkdrop/spectrum).", "PresetList"),
     ("NextPreset", "NextPreset", "Next visualisation preset.", "NextPreset"),
