@@ -150,20 +150,20 @@ GENERAL_ACTIONS = (
     ("VolumeUp", "VolumeUp", "Increase the volume of playback.", "VolumeUp"),
     ("VolumeDown", "VolumeDown", "Decrease the volume of playback.", "VolumeDown"),
     ("Mute", "Mute", "Mute the volume.", "Mute"),
-    ("ContextMenu", "ContextMenu", "Pops up a contextual menu.", "ContextMenu"),
-    ("ScrollUp", "ScrollUp", "Variable speed scroll up for analog keys (stick or triggers).", "ScrollUp"),
-    ("ScrollDown", "ScrollDown", "Variable speed scroll down for analog keys (stick or triggers).", "ScrollDown"),
-    ("Close", "Close", "Used to close a dialog.", "Close"),
-    ("Number0", "Number0", "Used to input the number 0.", "Number0"),
-    ("Number1", "Number1", "Used to input the number 1.", "Number1"),
-    ("Number2", "Number2", "Used to input the number 2.", "Number2"),
-    ("Number3", "Number3", "Used to input the number 3.", "Number3"),
-    ("Number4", "Number4", "Used to input the number 4.", "Number4"),
-    ("Number5", "Number5", "Used to input the number 5.", "Number5"),
-    ("Number6", "Number6", "Used to input the number 6.", "Number6"),
-    ("Number7", "Number7", "Used to input the number 7.", "Number7"),
-    ("Number8", "Number8", "Used to input the number 8.", "Number8"),
-    ("Number9", "Number9", "Used to input the number 9.", "Number9"),
+    ("ContextMenu", "ContextMenu", "Pops up a contextual menu", "ContextMenu"),
+    ("ScrollUp", "ScrollUp", "Variable speed scroll up for analog keys (stick or triggers)", "ScrollUp"),
+    ("ScrollDown", "ScrollDown", "Variable speed scroll down for analog keys (stick or triggers)", "ScrollDown"),
+    ("Close", "Close", "Used to close a dialog", "Close"),
+    ("Number0", "Number0", "Used to input the number 0", "Number0"),
+    ("Number1", "Number1", "Used to input the number 1", "Number1"),
+    ("Number2", "Number2", "Used to input the number 2", "Number2"),
+    ("Number3", "Number3", "Used to input the number 3", "Number3"),
+    ("Number4", "Number4", "Used to input the number 4", "Number4"),
+    ("Number5", "Number5", "Used to input the number 5", "Number5"),
+    ("Number6", "Number6", "Used to input the number 6", "Number6"),
+    ("Number7", "Number7", "Used to input the number 7", "Number7"),
+    ("Number8", "Number8", "Used to input the number 8", "Number8"),
+    ("Number9", "Number9", "Used to input the number 9", "Number9"),
 )),
 )
 
@@ -178,12 +178,12 @@ MEDIA_PLAYING_ACTIONS = (
     ("Rewind", "Rewind", "Toggle the rewind speed between normal play, 2x, 4x, 8x, 16x, and 32x.", "Rewind"),
     ("SkipNext", "SkipNext", "Skip to the next item in a playlist.", "SkipNext"),
     ("SkipPrevious", "SkipPrevious", "Skip to the previous item in a playlist.", "SkipPrevious"),
-    ("FullScreen", "FullScreen", "Toggles fullscreen modes (either visualisation or video playback).", "FullScreen"),
-    ("CodecInfo", "CodecInfo", "Show codec information about the currently playing item (during video or visualisation playback).", "CodecInfo"),
-    ("AnalogSeekForward", "AnalogSeekForward", "Variable speed seeking for analog keys (stick or triggers).", "AnalogSeekForward"),
-    ("AnalogSeekBack", "AnalogSeekBack", "Variable speed seeking for analog keys (stick or triggers).", "AnalogSeekBack"),
-    ("AnalogFastForward", "AnalogFastForward", "Variable speed fast forward for analog keys (stick or triggers).", "AnalogFastForward"),
-    ("AnalogRewind", "AnalogRewind", "Variable speed rewind for analog keys (stick or triggers).", "AnalogRewind"),
+    ("FullScreen", "FullScreen", "Toggles fullscreen modes (either visualisation or video playback)", "FullScreen"),
+    ("CodecInfo", "CodecInfo", "Show codec information about the currently playing item (during video or visualisation playback)", "CodecInfo"),
+    ("AnalogSeekForward", "AnalogSeekForward", "Variable speed seeking for analog keys (stick or triggers)", "AnalogSeekForward"),
+    ("AnalogSeekBack", "AnalogSeekBack", "Variable speed seeking for analog keys (stick or triggers)", "AnalogSeekBack"),
+    ("AnalogFastForward", "AnalogFastForward", "Variable speed fast forward for analog keys (stick or triggers)", "AnalogFastForward"),
+    ("AnalogRewind", "AnalogRewind", "Variable speed rewind for analog keys (stick or triggers)", "AnalogRewind"),
     ("PartyMode", "Party Mode", "Party mode.", "PlayerControl(PartyMode)"),
     ("Random", "Random", "Random.", "PlayerControl(Random)"),
     ("Repeat", "Repeat", "Repeat.", "PlayerControl(Repeat)"),
@@ -202,10 +202,10 @@ MEDIA_PLAYING_ACTIONS = (
 
 PLAYLIST_ACTIONS = (
 (eg.ActionGroup, "Playlist", "Playlist", None, (
-    ("Playlist", "Playlist", "Toggle to playlist view from My Music or My Videos.", "Playlist"),
-    ("Queue", "Queue", "Queue the item to the current playlist.", "Queue"),
-    ("MoveItemUp", "MoveItemUp", "Used to rearrange playlists.", "MoveItemUp"),
-    ("MoveItemDown", "MoveItemDown", "Used to rearrange playlists.", "MoveItemDown"),
+    ("Playlist", "Playlist", "Toggle to playlist view from My Music or My Videos", "Playlist"),
+    ("Queue", "Queue", "Queue the item to the current playlist", "Queue"),
+    ("MoveItemUp", "MoveItemUp", "Used to rearrange playlists", "MoveItemUp"),
+    ("MoveItemDown", "MoveItemDown", "Used to rearrange playlists", "MoveItemDown"),
 )),
 )
 
@@ -222,13 +222,13 @@ FULLSCREEN_VIDEO_ACTIONS = (
     ("AspectRatio", "AspectRatio", "Toggle through the various aspect ratio modes (Normal is the preferred option).", "AspectRatio"),
     ("ShowSubtitles", "ShowSubtitles", "Toggles whether subtitles are shown or not.", "ShowSubtitles"),
     ("NextSubtitle", "NextSubtitle", "Change to the next subtitle language, if there is more than one.", "NextSubtitle"),
-    ("SubtitleDelayMinus", "SubtitleDelayMinus", "Decrease the delay amount of subtitles (use if subtitles are displaying too late).", "SubtitleDelayMinus"),
-    ("SubtitleDelayPlus", "SubtitleDelayPlus", "Increase the delay amount of subtitles (use if subtitles are displaying too early).", "SubtitleDelayPlus"),
-    ("AudioDelayMinus", "AudioDelayMinus", "Decrease the delay amount of audio (use if audio is being heard too early).", "AudioDelayMinus"),
-    ("AudioDelayPlus", "AudioDelayPlus", "Increase the delay amount of audio (use if audio is being heard too late).", "AudioDelayPlus"),
+    ("SubtitleDelayMinus", "SubtitleDelayMinus", "Decrease the delay amount of subtitles (use if subtitles are displaying too late)", "SubtitleDelayMinus"),
+    ("SubtitleDelayPlus", "SubtitleDelayPlus", "Increase the delay amount of subtitles (use if subtitles are displaying too early)", "SubtitleDelayPlus"),
+    ("AudioDelayMinus", "AudioDelayMinus", "Decrease the delay amount of audio (use if audio is being heard too early)", "AudioDelayMinus"),
+    ("AudioDelayPlus", "AudioDelayPlus", "Increase the delay amount of audio (use if audio is being heard too late)", "AudioDelayPlus"),
     ("AudioNextLanguage", "AudioNextLanguage", "Change to the next audio track in a video with multiple audio tracks.", "AudioNextLanguage"),
     ("mplayerosd", "mplayerosd", "Show Mplayer's OSD.", "mplayerosd"),
-    ("ShowTime", "ShowTime", "Used to show the current play time in music + video playback.", "ShowTime"),
+    ("ShowTime", "ShowTime", "Used to show the current play time in music + video playback", "ShowTime"),
     ("ShowVideoMenu", "ShowVideoMenu", "Go to the DVD Video menu when playing a DVD.", "ShowVideoMenu"),
 )),
 )
@@ -252,17 +252,17 @@ SLIDESHOW_ACTIONS = (
     ("ZoomLevel8", "ZoomLevel8", "Zoom to 1350% in My Pictures.", "ZoomLevel8"),
     ("ZoomLevel9", "ZoomLevel9", "Zoom to 2000% in My Pictures.", "ZoomLevel9"),
     ("AnalogMove", "AnalogMove", "Move in the calibration screens, and while zoomed in My Pictures.", "AnalogMove"),
-    ("Rotate", "Rotate", "Rotate a picture in My Pictures.", "Rotate"),
+    ("Rotate", "Rotate", "Rotate a picture in My Pictures", "Rotate"),
 )),
 )
 # Actions handled by XBMC.  For a list of all actions see: http://xbmc.org/wiki/?title=Action_IDs#Actions_available_in_screen_calibration
 
 CALIBRATION_ACTIONS = (
 (eg.ActionGroup, "ScreenCalibration", "Screen calibration", None, (
-    ("NextCalibration", "NextCalibration", "Used in Video + GUI calibration.", "NextCalibration"),
-    ("ResetCalibration", "ResetCalibration", "Used in Video + GUI calibration.", "ResetCalibration"),
+    ("NextCalibration", "NextCalibration", "Used in Video + GUI calibration", "NextCalibration"),
+    ("ResetCalibration", "ResetCalibration", "Used in Video + GUI calibration", "ResetCalibration"),
     ("AnalogMove", "AnalogMove", "Move in the calibration screens, and while zoomed in My Pictures.", "AnalogMove"),
-    ("NextResolution", "NextResolution", "Used in Video calibration.", "NextResolution"),
+    ("NextResolution", "NextResolution", "Used in Video calibration", "NextResolution"),
 )),
 )
 
@@ -281,10 +281,10 @@ FILEMANAGER_ACTIONS = (
 ON_SCREEN_KEYBOARD_ACTIONS = (
 (eg.ActionGroup, "On-screenKeyboard", "On-screen keyboard", None, (
     ("BackSpace", "BackSpace", "Used in the virtual keyboards to delete one letter.", "BackSpace"),
-    ("Shift", "Shift", "Used in Virtual Keyboard to switch to upper or lower case letters.", "Shift"),
-    ("Symbols", "Symbols", "Used in Virtual Keyboard to switch to or from symbols mode.", "Symbols"),
-    ("CursorLeft", "CursorLeft", "Used in Virtual Keyboard to move the current cursor point to the left.", "CursorLeft"),
-    ("CursorRight", "CursorRight", "Used in Virtual Keyboard to move the current cursor point to the right.", "CursorRight"),
+    ("Shift", "Shift", "Used in Virtual Keyboard to switch to upper or lower case letters", "Shift"),
+    ("Symbols", "Symbols", "Used in Virtual Keyboard to switch to or from symbols mode", "Symbols"),
+    ("CursorLeft", "CursorLeft", "Used in Virtual Keyboard to move the current cursor point to the left", "CursorLeft"),
+    ("CursorRight", "CursorRight", "Used in Virtual Keyboard to move the current cursor point to the right", "CursorRight"),
 )),
 )
 
@@ -293,14 +293,14 @@ ON_SCREEN_KEYBOARD_ACTIONS = (
 VISUALISATION_ACTIONS = (
 (eg.ActionGroup, "MusicVisualisation", "Music visualisation", None, (
     ("OSD", "OSD", "Toggles the OSD while playing an item.", "OSD"),
-    ("ShowPreset", "ShowPreset", "Shows the current visualisation preset (milkdrop/spectrum).", "ShowPreset"),
-    ("PresetList", "PresetList", "Pops up the visualisation preset list (milkdrop/spectrum).", "PresetList"),
-    ("NextPreset", "NextPreset", "Next visualisation preset.", "NextPreset"),
-    ("PreviousPreset", "PreviousPreset", "Previous visualisation preset.", "PreviousPreset"),
-    ("LockPreset", "LockPreset", "Lock the current visualisation preset.", "LockPreset"),
-    ("RandomPreset", "RandomPreset", "Switch to a new random preset.", "RandomPreset"),
-    ("increasevisrating", "increasevisrating", "increasevisrating.", "increasevisrating"),
-    ("decreasevisrating", "decreasevisrating", "decreasevisrating.", "decreasevisrating"),
+    ("ShowPreset", "ShowPreset", "Shows the current visualisation preset (milkdrop/spectrum)", "ShowPreset"),
+    ("PresetList", "PresetList", "Pops up the visualisation preset list (milkdrop/spectrum)", "PresetList"),
+    ("NextPreset", "NextPreset", "Next visualisation preset", "NextPreset"),
+    ("PreviousPreset", "PreviousPreset", "Previous visualisation preset", "PreviousPreset"),
+    ("LockPreset", "LockPreset", "Lock the current visualisation preset", "LockPreset"),
+    ("RandomPreset", "RandomPreset", "Switch to a new random preset", "RandomPreset"),
+    ("increasevisrating", "increasevisrating", "increasevisrating", "increasevisrating"),
+    ("decreasevisrating", "decreasevisrating", "decreasevisrating", "decreasevisrating"),
 )),
 )
 
@@ -340,7 +340,7 @@ UNCATEGORIZED_ACTIONS = (
     ("FirstPage", "FirstPage", "FirstPage.", "FirstPage"),
     ("LastPage", "LastPage", "LastPage.", "LastPage"),
 
-    ("HideSubMenu", "HideSubMenu", "<Depreciated>.", "HideSubMenu"),
+    ("HideSubMenu", "HideSubMenu", "<Depreciated>", "HideSubMenu"),
 
     ("ToggleSource", "ToggleSource", "ToggleSource.", "ToggleSource"),
     ("Remove", "Remove", "Remove.", "Remove"),
@@ -355,7 +355,7 @@ UNCATEGORIZED_ACTIONS = (
     ("OSDValuePlus", "OSDValuePlus", "OSDValuePlus.", "OSDValuePlus"),
     ("OSDValueMinus", "OSDValueMinus", "OSDValueMinus.", "OSDValueMinus"),
 
-    ("ToggleWatched", "ToggleWatched", "ToggleWatched.", "ToggleWatched"),
+    ("ToggleWatched", "ToggleWatched", "ToggleWatched", "ToggleWatched"),
     ("ScanItem", "ScanItem", "ScanItem.", "ScanItem"),
 
     ("Enter", "Enter", "Enter.", "Enter"),
