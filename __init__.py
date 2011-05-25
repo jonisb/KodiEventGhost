@@ -172,8 +172,8 @@ GENERAL_ACTIONS = (
 MEDIA_PLAYING_ACTIONS = (
 (eg.ActionGroup, "MediaPlaying", "Media playing", None, (
     ("Play", "Play", "Play the selected item (or folder of items), or unpause a paused item..", "Play"),
-    ("Pause", "Pause", " Pause the currently playing item. .", "Pause"),
-    ("Stop", "Stop", " Stop the currently playing item. .", "Stop"),
+    ("Pause", "Pause", "Pause the currently playing item.", "Pause"),
+    ("Stop", "Stop", "Stop the currently playing item.", "Stop"),
     ("FastForward", "FastForward", "Toggle the fastforward speed between normal play, 2x, 4x, 8x, 16x, and 32x..", "FastForward"),
     ("Rewind", "Rewind", "Toggle the rewind speed between normal play, 2x, 4x, 8x, 16x, and 32x..", "Rewind"),
     ("SkipNext", "SkipNext", "Skip to the next item in a playlist..", "SkipNext"),
