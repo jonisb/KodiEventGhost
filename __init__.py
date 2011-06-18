@@ -28,7 +28,7 @@ from xml.dom.minidom import Node
 eg.RegisterPlugin(
     name = "XBMC2",
     author = "Joni Boren",
-    version = "0.6.1",
+    version = "0.6.2",
     kind = "program",
     guid = "{2DD98E35-F060-4444-9F11-168CD8131A6B}",
     canMultiLoad = True,
