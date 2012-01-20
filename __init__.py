@@ -28,9 +28,9 @@ from xml.dom.minidom import Node
 eg.RegisterPlugin(
     name = "XBMC2",
     author = "Joni Boren",
-    version = "0.6.3",
+    version = "0.6.3b",
     kind = "program",
-    guid = "{2DD98E35-F060-4444-9F11-168CD8131A6B}",
+    guid = "{8C8B850C-773F-4583-AAD9-A568262B7933}",
     canMultiLoad = True,
     createMacrosOnAdd = True,
     url = "http://www.eventghost.net/forum/viewtopic.php?f=10&t=1562",
