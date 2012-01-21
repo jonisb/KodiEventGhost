@@ -28,7 +28,7 @@ from xml.dom.minidom import Node
 eg.RegisterPlugin(
     name = "XBMC2",
     author = "Joni Boren",
-    version = "0.6.3c",
+    version = "0.6.3d",
     kind = "program",
     guid = "{8C8B850C-773F-4583-AAD9-A568262B7933}",
     canMultiLoad = True,
@@ -521,6 +521,7 @@ KEYBOARD_KEYS = (
 (eg.ActionGroup, "Keyboard", "Keyboard", None, (
     ("KeyboardBackspace", "Backspace", "", "backspace"),
     ("KeyboardEnter", "Enter", "", "enter"),
+    ("KeyboardTab", "Tab", "", "tab"),
 )),
 )
 
