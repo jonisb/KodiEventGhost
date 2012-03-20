@@ -28,7 +28,7 @@ from xml.dom.minidom import Node
 eg.RegisterPlugin(
     name = "XBMC2",
     author = "Joni Boren",
-    version = "0.6.3d",
+    version = "0.6.3e",
     kind = "program",
     guid = "{8C8B850C-773F-4583-AAD9-A568262B7933}",
     canMultiLoad = True,
@@ -805,7 +805,7 @@ class HTTPAPI(eg.ActionClass):
 		def UpdateCommands():
 			httpapi.Headers = [];httpapi.Commands = []
 			doc = xml.dom.minidom.parse(urllib.urlopen('http://wiki.xbmc.org/index.php?title=Web_Server_HTTP_API'))
-			for h3 in doc.getElementsByTagName("h3")[11:-1]:
+			for h3 in doc.getElementsByTagName("h3")[10:-1]:
 				for span in h3.getElementsByTagName("span"):
 					httpapi.Headers.append(span.childNodes[0].data)
 			Header = 0
