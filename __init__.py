@@ -23,6 +23,8 @@ import ast
 import xml.dom.minidom
 from xml.dom.minidom import Node
 
+from threading import Event, Thread
+
 # expose some information about the plugin through an eg.PluginInfo subclass
 
 eg.RegisterPlugin(
@@ -1040,6 +1042,27 @@ class JSONRPC(eg.ActionClass):
 		while panel.Affirmed():
 			panel.SetResult(HBoxControl.GetValue()+'.'+comboBoxControl.GetValue(), textControl2.GetValue(), CheckBox.GetValue())
 
+class JSONRPCEventsConnect(eg.ActionClass):
+	description = "Connect to XBMC to recieve JSON-RPC events"
+
+	def __call__(self):
+		self.plugin.stopThreadEvent.clear()
+		try:
+			if not self.plugin.JSONRPCEventsThread.isAlive():
+				self.plugin.JSONRPCEventsThread = Thread(target=self.plugin.JSONRPCEvents, args=(self.plugin.stopThreadEvent,))
+				self.plugin.JSONRPCEventsThread.start()
+			else:
+				print "Already connected."
+		except AttributeError:
+			self.plugin.JSONRPCEventsThread = Thread(target=self.plugin.JSONRPCEvents, args=(self.plugin.stopThreadEvent,))
+			self.plugin.JSONRPCEventsThread.start()
+
+class JSONRPCEventsDisconnect(eg.ActionClass):
+	description = "Stop reciving JSON-RPC events from XBMC"
+
+	def __call__(self):
+		self.plugin.stopThreadEvent.set()
+
 #class StopRepeating(eg.ActionClass):
 #    name = "Stop Repeating"
 #    description = "Stops a button repeating."
@@ -1082,17 +1105,31 @@ class XBMC2(eg.PluginClass):
         TestGroup.AddAction(HTTPAPI)
         TestGroup.AddAction(GetCurrentlyPlayingFilename)
         TestGroup.AddAction(SendNotification)
+        TestGroup.AddAction(JSONRPCEventsConnect)
+        TestGroup.AddAction(JSONRPCEventsDisconnect)
 
 #        self.AddAction(StopRepeating)
         self.xbmc = XBMCClient("EventGhost")
         self.JSON_RPC = XBMC_JSON_RPC()
         self.HTTP_API = XBMC_HTTP_API()
 
-    def Configure(self, ip="127.0.0.1", port="80"):
+    def Configure(self, ip="127.0.0.1", port="80", eventsConfig={'JSONRPC':{'Port': 9090, 'Retrys': 5, 'RetryTime': 5}}):
 #    def Configure(self, ip="127.0.0.1", IPs = ['127.0.0.1', '192.168.0.100']):
         panel = eg.ConfigPanel()
         textControl = wx.TextCtrl(panel, -1, ip)
         textControl2 = wx.TextCtrl(panel, -1, port)
+        try:
+					eventsConfig['JSONRPC']
+					eventsConfig['JSONRPC']['Port']
+					eventsConfig['JSONRPC']['Retrys']
+					eventsConfig['JSONRPC']['RetryTime']
+        except:
+					eventsConfig = {'JSONRPC':{'Port': 9090, 'Retrys': 5, 'RetryTime': 5}}
+					eg.PrintError("JSON-RPC event settings reset, please check.")
+
+        JSONRPCNotificationPort = wx.TextCtrl(panel, -1, str(eventsConfig['JSONRPC']['Port']))
+        JSONRPCNotificationRetrys = wx.TextCtrl(panel, -1, str(eventsConfig['JSONRPC']['Retrys']))
+        JSONRPCNotificationRetryTime = wx.TextCtrl(panel, -1, str(eventsConfig['JSONRPC']['RetryTime']))
 #        textControl = panel.ComboBox(
 #            ip,
 #            IPs,
@@ -1103,12 +1140,20 @@ class XBMC2(eg.PluginClass):
 #        panel.sizer.Add(textControl, 1, wx.EXPAND)
         panel.sizer.Add(textControl)
         panel.sizer.Add(textControl2)
+        panel.sizer.Add(wx.StaticText(panel, -1, "JSON-RPC notification port"))
+        panel.sizer.Add(JSONRPCNotificationPort)
+        panel.sizer.Add(JSONRPCNotificationRetrys)
+        panel.sizer.Add(JSONRPCNotificationRetryTime)
         while panel.Affirmed():
-            panel.SetResult(textControl.GetValue(), textControl2.GetValue())
+					eventsConfig['JSONRPC']['Port'] = int(JSONRPCNotificationPort.GetValue())
+					eventsConfig['JSONRPC']['Retrys'] = int(JSONRPCNotificationRetrys.GetValue())
+					eventsConfig['JSONRPC']['RetryTime'] = int(JSONRPCNotificationRetryTime.GetValue())
+					panel.SetResult(textControl.GetValue(), textControl2.GetValue(), eventsConfig)
 
-    def __start__(self, ip='127.0.0.1', port='80'):
+    def __start__(self, ip='127.0.0.1', port='80', eventsConfig={'JSONRPC':{'Port': 9090, 'Retrys': 5, 'RetryTime': 5}}):
         self.ip = ip
         self.port = port
+        self.eventsConfig = eventsConfig
         try:
             self.xbmc.connect(ip=ip)
 #            self.xbmc.connect()
@@ -1120,10 +1165,11 @@ class XBMC2(eg.PluginClass):
             raise self.Exceptions.ProgramNotRunning
         self.JSON_RPC.connect(ip=ip, port=port)
         self.HTTP_API.connect(ip=ip, port=port)
+       	self.stopThreadEvent = Event()
 
     def __stop__(self):
         try:
-#            self.stopThreadEvent.set()
+            self.stopThreadEvent.set()
             self.xbmc.close()
         except:
             pass
@@ -1135,3 +1181,46 @@ class XBMC2(eg.PluginClass):
 #        while not stopThreadEvent.isSet():
 #            self.TriggerEvent("MyTimerEvent")
 #            stopThreadEvent.wait(10.0)
+
+    def JSONRPCEvents(self, stopThreadEvent):
+			retrys = self.eventsConfig['JSONRPC']['Retrys']
+			retryTime = self.eventsConfig['JSONRPC']['RetryTime']
+
+			try:
+				retry = retrys
+				while retry:
+					print 'try # ' + str(retrys + 1 - retry)
+					try:
+						import socket
+						s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+						s.connect((self.ip, self.eventsConfig['JSONRPC']['Port']))
+					except socket.error:
+						retry -= 1
+						import time
+						time.sleep(retryTime)
+					else:
+						break
+				if not retry:
+					eg.PrintError("Can't connect via JSON-RPC to XBMC")
+					return
+			except:
+				import sys
+				eg.PrintError('JSON-RPC connect error: ' + str(sys.exc_info()))
+				return
+			print 'Listening for XBMC events'
+			while not stopThreadEvent.isSet():
+				try:
+					message = s.recv(8192)
+					if not message:
+						break
+					message = json.loads(message)
+					#if self.eventlog:
+					#	print "Raw event: %s" % repr(message)
+					event = message['method']
+					payload = message['params']['data']
+				except:
+					eg.PrintError('Error: JSON-RPC event' + str(sys.exc_info()))
+				if not stopThreadEvent.isSet():
+					self.TriggerEvent(event, payload)
+			s.close()
+			print 'Not listening for XBMC events'
