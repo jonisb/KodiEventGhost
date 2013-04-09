@@ -17,7 +17,7 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from xbmcclient import *
-import urllib
+import urllib2
 import json
 import ast
 import xml.dom.minidom
@@ -625,10 +625,9 @@ class XBMC_HTTP_API:
 
 	def send(self, method, params = ""):
 		try:
-			responce = urllib.urlopen('http://'+self.ip+':'+self.port+'/xbmcCmds/xbmcHttp?command='+method+'('+urllib.quote(eg.ParseString(params), ':\\')+')').readlines()
+			responce = urllib2.urlopen('http://'+self.ip+':'+self.port+'/xbmcCmds/xbmcHttp?command='+method+'('+urllib2.quote(eg.ParseString(params), ':\\')+')').readlines()
 		except IOError:
-#			print 'HTTP API connection error:'+' http://'+self.ip+':'+self.port+'\n'+method+'('+urllib.quote(eg.ParseString(params), ':\\')+')'
-			eg.PrintError('HTTP API connection error:'+' http://'+self.ip+':'+self.port+'\n'+method+'('+urllib.quote(eg.ParseString(params), ':\\')+')')
+			eg.PrintError('HTTP API connection error:'+' http://'+self.ip+':'+self.port+'\n'+method+'('+urllib2.quote(eg.ParseString(params), ':\\')+')')
 		else:
 			if (''.join(responce).find('<html>') != -1):
 				responce2 = {}
@@ -674,9 +673,10 @@ class XBMC_JSON_RPC:
 			if self.jsoninit.has_key('params'):
 				del self.jsoninit['params']
 		try:
-			responce = urllib.urlopen('http://'+self.ip+':'+self.port+'/jsonrpc', json.dumps(self.jsoninit)).read()
+			request = urllib2.Request('http://'+self.ip+':'+self.port+'/jsonrpc',json.dumps(self.jsoninit))
+			request.add_header('Content-Type', 'application/json')
+			responce = urllib2.urlopen(request).read()
 		except IOError:
-#			print 'JSON-RPC connection error:'+' http://'+self.ip+':'+self.port+'\n'+json.dumps(self.jsoninit)
 			eg.PrintError('JSON-RPC connection error:'+' http://'+self.ip+':'+self.port+'\n'+json.dumps(self.jsoninit))
 		else:
 #			print responce
@@ -806,7 +806,7 @@ class HTTPAPI(eg.ActionClass):
 			return Text
 		def UpdateCommands():
 			httpapi.Headers = [];httpapi.Commands = []
-			doc = xml.dom.minidom.parse(urllib.urlopen('http://wiki.xbmc.org/index.php?title=Web_Server_HTTP_API'))
+			doc = xml.dom.minidom.parse(urllib2.urlopen('http://wiki.xbmc.org/index.php?title=Web_Server_HTTP_API'))
 			for h3 in doc.getElementsByTagName("h3")[10:-1]:
 				for span in h3.getElementsByTagName("span"):
 					httpapi.Headers.append(span.childNodes[0].data)
