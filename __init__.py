@@ -1078,8 +1078,6 @@ class JSONRPCEventsDisconnect(eg.ActionClass):
 
 class XBMC2(eg.PluginClass):
     def __init__(self):
-#        self.ip = "127.0.0.1"
-#        self.port = port
         ButtonsGroup = self.AddGroup("Buttons", "Button actions to send to XBMC")
         ButtonsGroup.AddActionsFromList(REMOTE_BUTTONS, ButtonPrototype)
         ButtonsGroup.AddActionsFromList(GAMEPAD_BUTTONS, GamepadPrototype)
@@ -1114,7 +1112,6 @@ class XBMC2(eg.PluginClass):
         self.HTTP_API = XBMC_HTTP_API()
 
     def Configure(self, ip="127.0.0.1", port="80", eventsConfig={'JSONRPC':{'Port': 9090, 'Retrys': 5, 'RetryTime': 5}}):
-#    def Configure(self, ip="127.0.0.1", IPs = ['127.0.0.1', '192.168.0.100']):
         panel = eg.ConfigPanel()
         textControl = wx.TextCtrl(panel, -1, ip)
         textControl2 = wx.TextCtrl(panel, -1, port)
@@ -1156,8 +1153,6 @@ class XBMC2(eg.PluginClass):
         self.eventsConfig = eventsConfig
         try:
             self.xbmc.connect(ip=ip)
-#            self.xbmc.connect()
-#            self.xbmc.connect(ip="192.168.0.100")
 #            self.stopThreadEvent = Event()
 #            thread = Thread(target=self.ThreadWorker, args=(self.stopThreadEvent,))
 #            thread.start()
