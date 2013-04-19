@@ -1177,7 +1177,6 @@ class XBMC2(eg.PluginClass):
         CheckDefault(self.pluginConfigDefault, pluginConfig)
 
         self.pluginConfig = pluginConfig
-        self.eventsConfig = pluginConfig
         try:
             self.xbmc.connect(ip=pluginConfig['XBMC']['ip'])
 #            self.stopThreadEvent = Event()
@@ -1205,8 +1204,8 @@ class XBMC2(eg.PluginClass):
 #            stopThreadEvent.wait(10.0)
 
     def JSONRPCEvents(self, stopThreadEvent):
-			retrys = self.eventsConfig['JSONRPC']['Retrys']
-			retryTime = self.eventsConfig['JSONRPC']['RetryTime']
+			retrys = self.pluginConfig['JSONRPC']['Retrys']
+			retryTime = self.pluginConfig['JSONRPC']['RetryTime']
 
 			try:
 				retry = retrys
@@ -1215,7 +1214,7 @@ class XBMC2(eg.PluginClass):
 					try:
 						import socket
 						s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-						s.connect((self.eventsConfig['XBMC']['ip'], self.eventsConfig['JSONRPC']['Port']))
+						s.connect((self.pluginConfig['XBMC']['ip'], self.pluginConfig['JSONRPC']['Port']))
 					except socket.error:
 						retry -= 1
 						import time
