@@ -1137,38 +1137,117 @@ class XBMC2(eg.PluginClass):
         self.HTTP_API = XBMC_HTTP_API()
 
     def Configure(self, pluginConfig={}, *args):
-        if type(pluginConfig) is not dict:
-        	pluginConfig = {}
-        CheckDefault(self.pluginConfigDefault, pluginConfig)
+				def ConnectionTest(event):
+					pass
+				def SearchForXBMC(event):
+					#for i in ssdpSearch().keys():
+					#	panel.combo_box_IP.Append(i)
+					pass
+				def initPanel(self):
+					self.combo_box_IP = wx.ComboBox(self, wx.ID_ANY, value=pluginConfig['XBMC']['ip']+':'+pluginConfig['XBMC']['port'], choices=["127.0.0.1:80"], style=wx.CB_DROPDOWN)
+					self.button_IPTest = wx.Button(self, wx.ID_ANY, "Test")
+					self.button_Search = wx.Button(self, wx.ID_ANY, "Search")
+					self.label_Username = wx.StaticText(self, wx.ID_ANY, "Username")
+					self.text_ctrl_Username = wx.TextCtrl(self, wx.ID_ANY, pluginConfig['XBMC']['username'])
+					self.label_Password = wx.StaticText(self, wx.ID_ANY, "Password")
+					self.text_ctrl_Password = wx.TextCtrl(self, wx.ID_ANY, pluginConfig['XBMC']['password'], style=wx.TE_PASSWORD)
+					self.sizer_Global_staticbox = wx.StaticBox(self, wx.ID_ANY, "IP address and port of XBMC (127.0.01 is this computer)")
+					self.checkbox_JSONRPCEnable = wx.CheckBox(self, wx.ID_ANY, "Enable")
+					self.label_Port = wx.StaticText(self, wx.ID_ANY, "Port")
+					self.spin_ctrl_JSONRPCPort = wx.SpinCtrl(self, wx.ID_ANY, "9090", min=0, max=65535)
+					self.label_Retrys = wx.StaticText(self, wx.ID_ANY, "Retrys")
+					self.spin_ctrl_Retrys = wx.SpinCtrl(self, wx.ID_ANY, "5", min=0, max=100)
+					self.label_Time = wx.StaticText(self, wx.ID_ANY, "Time between retrys")
+					self.spin_ctrl_Time = wx.SpinCtrl(self, wx.ID_ANY, "5", min=0, max=100)
+					self.label_Seconds = wx.StaticText(self, wx.ID_ANY, "Seconds")
+					self.sizer_JSONRPC_staticbox = wx.StaticBox(self, wx.ID_ANY, "JSON-RPC notifications")
+					self.checkbox_BroadcastEnable = wx.CheckBox(self, wx.ID_ANY, "Enable")
+					self.label_BroadcastPort = wx.StaticText(self, wx.ID_ANY, "Port")
+					self.spin_ctrl_BroadcastPort = wx.SpinCtrl(self, wx.ID_ANY, "8278", min=0, max=65535)
+					self.checkbox_BroadcastWorkaround = wx.CheckBox(self, wx.ID_ANY, "Repeating events workaround")
+					self.sizer_Broadcast_staticbox = wx.StaticBox(self, wx.ID_ANY, "Broadcast events")
+					self.sizer_Events_staticbox = wx.StaticBox(self, wx.ID_ANY, "Event settings")
+					self.button_IPTest.Bind(wx.EVT_BUTTON, ConnectionTest)
+					self.button_Search.Bind(wx.EVT_BUTTON, SearchForXBMC)				
+					setPanelProperties(self)
+					doPanelLayout(self)
+				def setPanelProperties(self):
+					self.combo_box_IP.SetMinSize((147, 21))
+					self.combo_box_IP.SetToolTipString("IP address of the XBMC you want to control.")
+					self.button_IPTest.SetToolTipString("Test to connect to XBMC")
+					self.button_Search.SetToolTipString("Search for any XBMCs that are running and reachable over the LAN.")
+					self.text_ctrl_Username.SetToolTipString("Username that are specified in XBMC")
+					self.text_ctrl_Password.SetToolTipString("Password that are specified in XBMC")
+					self.checkbox_JSONRPCEnable.SetToolTipString("Enable JSON-RPC notifications")
+					self.spin_ctrl_JSONRPCPort.SetMinSize((60, -1))
+					self.spin_ctrl_JSONRPCPort.SetToolTipString("Port used by XBMC to recieve notifications")
+					self.spin_ctrl_Retrys.SetMinSize((50, -1))
+					self.spin_ctrl_Time.SetMinSize((50, -1))
+				def doPanelLayout(self):
+					self.sizer = wx.BoxSizer(wx.VERTICAL)
+					self.sizer_Events_staticbox.Lower()
+					sizer_Events = wx.StaticBoxSizer(self.sizer_Events_staticbox, wx.VERTICAL)
+					self.sizer_Broadcast_staticbox.Lower()
+					sizer_Broadcast = wx.StaticBoxSizer(self.sizer_Broadcast_staticbox, wx.HORIZONTAL)
+					sizer_BroadcastEnable = wx.BoxSizer(wx.VERTICAL)
+					sizer_BroadcastPort = wx.BoxSizer(wx.HORIZONTAL)
+					self.sizer_JSONRPC_staticbox.Lower()
+					sizer_JSONRPC = wx.StaticBoxSizer(self.sizer_JSONRPC_staticbox, wx.VERTICAL)
+					sizer_14 = wx.BoxSizer(wx.HORIZONTAL)
+					self.sizer_Global_staticbox.Lower()
+					sizer_Global = wx.StaticBoxSizer(self.sizer_Global_staticbox, wx.VERTICAL)
+					sizer_Password = wx.BoxSizer(wx.HORIZONTAL)
+					sizer_IPPort = wx.BoxSizer(wx.HORIZONTAL)
+					sizer_IPPort.Add(self.combo_box_IP, 0, 0, 0)
+					sizer_IPPort.Add(self.button_IPTest, 0, 0, 0)
+					sizer_IPPort.Add(self.button_Search, 0, 0, 0)
+					sizer_Global.Add(sizer_IPPort, 1, wx.EXPAND, 0)
+					sizer_Password.Add(self.label_Username, 0, 0, 0)
+					sizer_Password.Add(self.text_ctrl_Username, 0, 0, 0)
+					sizer_Password.Add(self.label_Password, 0, 0, 0)
+					sizer_Password.Add(self.text_ctrl_Password, 0, 0, 0)
+					sizer_Global.Add(sizer_Password, 1, wx.EXPAND, 0)
+					self.sizer.Add(sizer_Global, 0, 0, 0)
+					sizer_JSONRPC.Add(self.checkbox_JSONRPCEnable, 0, 0, 0)
+					sizer_14.Add(self.label_Port, 0, 0, 0)
+					sizer_14.Add(self.spin_ctrl_JSONRPCPort, 0, 0, 0)
+					sizer_14.Add(self.label_Retrys, 0, 0, 0)
+					sizer_14.Add(self.spin_ctrl_Retrys, 0, 0, 0)
+					sizer_14.Add(self.label_Time, 0, 0, 0)
+					sizer_14.Add(self.spin_ctrl_Time, 0, 0, 0)
+					sizer_14.Add(self.label_Seconds, 0, 0, 0)
+					sizer_JSONRPC.Add(sizer_14, 1, wx.EXPAND, 0)
+					sizer_Events.Add(sizer_JSONRPC, 1, wx.EXPAND, 0)
+					sizer_BroadcastEnable.Add(self.checkbox_BroadcastEnable, 0, 0, 0)
+					sizer_BroadcastPort.Add(self.label_BroadcastPort, 0, 0, 0)
+					sizer_BroadcastPort.Add(self.spin_ctrl_BroadcastPort, 0, 0, 0)
+					sizer_BroadcastPort.Add(self.checkbox_BroadcastWorkaround, 0, 0, 0)
+					sizer_BroadcastEnable.Add(sizer_BroadcastPort, 1, wx.EXPAND, 0)
+					sizer_Broadcast.Add(sizer_BroadcastEnable, 1, wx.EXPAND, 0)
+					sizer_Events.Add(sizer_Broadcast, 1, wx.EXPAND, 0)
+					self.sizer.Add(sizer_Events, 1, wx.EXPAND, 0)
+					self.sizer.Fit(self)
 
-        panel = eg.ConfigPanel()
-        
-        textControl = wx.TextCtrl(panel, -1, pluginConfig['XBMC']['ip'])
-        textControl2 = wx.TextCtrl(panel, -1, pluginConfig['XBMC']['port'])
+				if type(pluginConfig) is not dict:
+					pluginConfig = {}
+				CheckDefault(self.pluginConfigDefault, pluginConfig)
 
-        JSONRPCNotificationPort = wx.TextCtrl(panel, -1, str(pluginConfig['JSONRPC']['port']))
-        JSONRPCNotificationRetrys = wx.TextCtrl(panel, -1, str(pluginConfig['JSONRPC']['retrys']))
-        JSONRPCNotificationRetryTime = wx.TextCtrl(panel, -1, str(pluginConfig['JSONRPC']['RetryTime']))
+				panel = eg.ConfigPanel()
+				initPanel(panel)
 #        textControl = panel.ComboBox(
 #            ip,
 #            IPs,
 #            style=wx.CB_DROPDOWN,
 #            validator=eg.DigitOnlyValidator()
 #        )
-        panel.sizer.Add(wx.StaticText(panel, -1, "IP address of XBMC ( 127.0.0.1 is this computer )"))
-#        panel.sizer.Add(textControl, 1, wx.EXPAND)
-        panel.sizer.Add(textControl)
-        panel.sizer.Add(textControl2)
-        panel.sizer.Add(wx.StaticText(panel, -1, "JSON-RPC notification port"))
-        panel.sizer.Add(JSONRPCNotificationPort)
-        panel.sizer.Add(JSONRPCNotificationRetrys)
-        panel.sizer.Add(JSONRPCNotificationRetryTime)
-        while panel.Affirmed():
-					pluginConfig['XBMC']['ip'] = textControl.GetValue()
-					pluginConfig['XBMC']['port'] = textControl2.GetValue()
-					pluginConfig['JSONRPC']['port'] = int(JSONRPCNotificationPort.GetValue())
-					pluginConfig['JSONRPC']['retrys'] = int(JSONRPCNotificationRetrys.GetValue())
-					pluginConfig['JSONRPC']['RetryTime'] = int(JSONRPCNotificationRetryTime.GetValue())
+				while panel.Affirmed():
+					pluginConfig['XBMC']['ip'] = panel.combo_box_IP.GetValue().split(':')[0]
+					pluginConfig['XBMC']['port'] = panel.combo_box_IP.GetValue().split(':')[1]
+					pluginConfig['XBMC']['username'] = panel.text_ctrl_Username.GetValue()
+					pluginConfig['XBMC']['password'] = panel.text_ctrl_Password.GetValue()
+					#pluginConfig['JSONRPC']['port'] = int(JSONRPCNotificationPort.GetValue())
+					#pluginConfig['JSONRPC']['retrys'] = int(JSONRPCNotificationRetrys.GetValue())
+					#pluginConfig['JSONRPC']['RetryTime'] = int(JSONRPCNotificationRetryTime.GetValue())
 					panel.SetResult(pluginConfig)
 
     def __start__(self, pluginConfig={}, *args):
