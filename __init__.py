@@ -1073,10 +1073,40 @@ class JSONRPCEventsDisconnect(eg.ActionClass):
 #        except:
 #            raise self.Exceptions.ProgramNotRunning
 
-
+def CheckDefault(Dict1, Dict2):
+	for i in Dict1.iterkeys():
+		if type(Dict1[i]) is dict:
+			try:
+				CheckDefault(Dict1[i], Dict2[i])
+			except KeyError:
+				Dict2[i] = Dict1[i].copy()
+		else:
+			if not Dict2.has_key(i):
+				Dict2[i] = Dict1[i]
+				
 # And now we define the actual plugin:
 
 class XBMC2(eg.PluginClass):
+    pluginConfigDefault = {
+    	'XBMC': {
+    		'ip': '127.0.0.1', 
+    		'port': '80', 
+    		'username': '', 
+    		'password': '', 
+    	}, 
+    	'JSONRPC': {
+    		'port': '9090', 
+    		'retrys': 5, 
+    		'RetryTime': 5, 
+    	}, 
+    	'Broadcast':{
+				'Enable': False, 
+				'Port': 8278, 
+				'Workaround': False, 
+    	}, 
+    	'LogRawEvents': False, 
+    }
+
     def __init__(self):
         ButtonsGroup = self.AddGroup("Buttons", "Button actions to send to XBMC")
         ButtonsGroup.AddActionsFromList(REMOTE_BUTTONS, ButtonPrototype)
@@ -1111,22 +1141,19 @@ class XBMC2(eg.PluginClass):
         self.JSON_RPC = XBMC_JSON_RPC()
         self.HTTP_API = XBMC_HTTP_API()
 
-    def Configure(self, ip="127.0.0.1", port="80", eventsConfig={'JSONRPC':{'Port': 9090, 'Retrys': 5, 'RetryTime': 5}}):
-        panel = eg.ConfigPanel()
-        textControl = wx.TextCtrl(panel, -1, ip)
-        textControl2 = wx.TextCtrl(panel, -1, port)
-        try:
-					eventsConfig['JSONRPC']
-					eventsConfig['JSONRPC']['Port']
-					eventsConfig['JSONRPC']['Retrys']
-					eventsConfig['JSONRPC']['RetryTime']
-        except:
-					eventsConfig = {'JSONRPC':{'Port': 9090, 'Retrys': 5, 'RetryTime': 5}}
-					eg.PrintError("JSON-RPC event settings reset, please check.")
+    def Configure(self, pluginConfig={}, *args):
+        if type(pluginConfig) is not dict:
+        	pluginConfig = {}
+        CheckDefault(self.pluginConfigDefault, pluginConfig)
 
-        JSONRPCNotificationPort = wx.TextCtrl(panel, -1, str(eventsConfig['JSONRPC']['Port']))
-        JSONRPCNotificationRetrys = wx.TextCtrl(panel, -1, str(eventsConfig['JSONRPC']['Retrys']))
-        JSONRPCNotificationRetryTime = wx.TextCtrl(panel, -1, str(eventsConfig['JSONRPC']['RetryTime']))
+        panel = eg.ConfigPanel()
+        
+        textControl = wx.TextCtrl(panel, -1, pluginConfig['XBMC']['ip'])
+        textControl2 = wx.TextCtrl(panel, -1, pluginConfig['XBMC']['port'])
+
+        JSONRPCNotificationPort = wx.TextCtrl(panel, -1, str(pluginConfig['JSONRPC']['port']))
+        JSONRPCNotificationRetrys = wx.TextCtrl(panel, -1, str(pluginConfig['JSONRPC']['retrys']))
+        JSONRPCNotificationRetryTime = wx.TextCtrl(panel, -1, str(pluginConfig['JSONRPC']['RetryTime']))
 #        textControl = panel.ComboBox(
 #            ip,
 #            IPs,
@@ -1142,24 +1169,31 @@ class XBMC2(eg.PluginClass):
         panel.sizer.Add(JSONRPCNotificationRetrys)
         panel.sizer.Add(JSONRPCNotificationRetryTime)
         while panel.Affirmed():
-					eventsConfig['JSONRPC']['Port'] = int(JSONRPCNotificationPort.GetValue())
-					eventsConfig['JSONRPC']['Retrys'] = int(JSONRPCNotificationRetrys.GetValue())
-					eventsConfig['JSONRPC']['RetryTime'] = int(JSONRPCNotificationRetryTime.GetValue())
-					panel.SetResult(textControl.GetValue(), textControl2.GetValue(), eventsConfig)
+					pluginConfig['XBMC']['ip'] = textControl.GetValue()
+					pluginConfig['XBMC']['port'] = textControl2.GetValue()
+					pluginConfig['JSONRPC']['port'] = int(JSONRPCNotificationPort.GetValue())
+					pluginConfig['JSONRPC']['retrys'] = int(JSONRPCNotificationRetrys.GetValue())
+					pluginConfig['JSONRPC']['RetryTime'] = int(JSONRPCNotificationRetryTime.GetValue())
+					panel.SetResult(pluginConfig)
 
-    def __start__(self, ip='127.0.0.1', port='80', eventsConfig={'JSONRPC':{'Port': 9090, 'Retrys': 5, 'RetryTime': 5}}):
-        self.ip = ip
-        self.port = port
-        self.eventsConfig = eventsConfig
+    def __start__(self, pluginConfig={}, *args):
+        if type(pluginConfig) is not dict:
+        	pluginConfig = {}
+        CheckDefault(self.pluginConfigDefault, pluginConfig)
+
+        self.ip = pluginConfig['XBMC']['ip']
+        self.port = pluginConfig['XBMC']['port']
+        self.pluginConfig = pluginConfig
+        self.eventsConfig = pluginConfig
         try:
-            self.xbmc.connect(ip=ip)
+            self.xbmc.connect(ip=self.ip)
 #            self.stopThreadEvent = Event()
 #            thread = Thread(target=self.ThreadWorker, args=(self.stopThreadEvent,))
 #            thread.start()
         except:
             raise self.Exceptions.ProgramNotRunning
-        self.JSON_RPC.connect(ip=ip, port=port)
-        self.HTTP_API.connect(ip=ip, port=port)
+        self.JSON_RPC.connect(ip=self.ip, port=self.port)
+        self.HTTP_API.connect(ip=self.ip, port=self.port)
        	self.stopThreadEvent = Event()
 
     def __stop__(self):
