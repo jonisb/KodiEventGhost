@@ -616,14 +616,16 @@ class XBMC_HTTP_API:
 	def __init__(self):
 		pass
 
-	def connect(self, ip="127.0.0.1", port="80"):
+	def connect(self, ip="127.0.0.1", port="80", username='', password=''):
 		self.ip = ip
 		self.port = port
+		self.ip = username
+		self.port = password
 		print 'HTTP API connected'
 
 	def send(self, method, params = ""):
 		try:
-			responce = urllib2.urlopen('http://'+self.ip+':'+self.port+'/xbmcCmds/xbmcHttp?command='+method+'('+urllib2.quote(eg.ParseString(params), ':\\')+')').readlines()
+			responce = urllib2.urlopen('http://'+self.username+':'+self.password+'@'+self.ip+':'+self.port+'/xbmcCmds/xbmcHttp?command='+method+'('+urllib2.quote(eg.ParseString(params), ':\\')+')').readlines()
 		except IOError:
 			eg.PrintError('HTTP API connection error:'+' http://'+self.ip+':'+self.port+'\n'+method+'('+urllib2.quote(eg.ParseString(params), ':\\')+')')
 		else:
@@ -655,9 +657,12 @@ class XBMC_JSON_RPC:
 	def __init__(self):
 		self.jsoninit = {'jsonrpc':'2.0', 'id':1}
 
-	def connect(self, ip="127.0.0.1", port="80"):
+	def connect(self, ip="127.0.0.1", port="80", username='', password=''):
 		self.ip = ip
 		self.port = port
+		import base64
+		self.base64string = base64.encodestring('%s:%s' % (username, password)).replace('\n', '')
+		#self.base64string = base64.encodestring('%s:%s' % (username, password))[:-1]
 		print 'JSON-RPC connected'
 
 	def send(self, method, params = None):
@@ -669,12 +674,13 @@ class XBMC_JSON_RPC:
 				del self.jsoninit['params']
 		try:
 			request = urllib2.Request('http://'+self.ip+':'+self.port+'/jsonrpc',json.dumps(self.jsoninit))
+			request.add_header("Authorization", "Basic %s" % self.base64string)
 			request.add_header('Content-Type', 'application/json')
 			responce = urllib2.urlopen(request).read()
 		except IOError:
 			eg.PrintError('JSON-RPC connection error:'+' http://'+self.ip+':'+self.port+'\n'+json.dumps(self.jsoninit))
 		else:
-#			print responce
+			#print responce
 			return json.loads(responce)
 
 	def close(self):
@@ -1137,8 +1143,17 @@ class XBMC2(eg.PluginClass):
         self.HTTP_API = XBMC_HTTP_API()
 
     def Configure(self, pluginConfig={}, *args):
+				changed = False
 				def ConnectionTest(event):
-					pass
+					#self.xbmc.connect(ip=panel.combo_box_IP.GetValue().split(':')[0])
+					#self.xbmc.send_notification('XBMC2 for EventGhost', 'Connection test, if you see this your IP address is correct.')
+					#self.xbmc.close()
+					
+					self.JSON_RPC.connect(ip=panel.combo_box_IP.GetValue().split(':')[0], port=panel.combo_box_IP.GetValue().split(':')[1], username=panel.text_ctrl_Username.GetValue(), password=panel.text_ctrl_Password.GetValue())
+					if not self.JSON_RPC.send('GUI.ShowNotification', ast.literal_eval("['XBMC2 for EventGhost','Connection test, JSON-RPC works.']")):
+						eg.PrintError('XBMC2: Not able to connect to XBMC, check your settings.')
+					self.JSON_RPC.close()
+
 				def SearchForXBMC(event):
 					#for i in ssdpSearch().keys():
 					#	panel.combo_box_IP.Append(i)
@@ -1241,14 +1256,22 @@ class XBMC2(eg.PluginClass):
 #            validator=eg.DigitOnlyValidator()
 #        )
 				while panel.Affirmed():
-					pluginConfig['XBMC']['ip'] = panel.combo_box_IP.GetValue().split(':')[0]
-					pluginConfig['XBMC']['port'] = panel.combo_box_IP.GetValue().split(':')[1]
-					pluginConfig['XBMC']['username'] = panel.text_ctrl_Username.GetValue()
-					pluginConfig['XBMC']['password'] = panel.text_ctrl_Password.GetValue()
+					if pluginConfig['XBMC']['ip'] != panel.combo_box_IP.GetValue().split(':')[0]:
+						pluginConfig['XBMC']['ip'] = panel.combo_box_IP.GetValue().split(':')[0]
+						changed = True
+					if pluginConfig['XBMC']['port'] != panel.combo_box_IP.GetValue().split(':')[1]:
+						pluginConfig['XBMC']['port'] = panel.combo_box_IP.GetValue().split(':')[1]
+						changed = True
+					if pluginConfig['XBMC']['username'] != panel.text_ctrl_Username.GetValue():
+						pluginConfig['XBMC']['username'] = panel.text_ctrl_Username.GetValue()
+						changed = True
+					if pluginConfig['XBMC']['password'] != panel.text_ctrl_Password.GetValue():
+						pluginConfig['XBMC']['password'] = panel.text_ctrl_Password.GetValue()
+						changed = True
 					#pluginConfig['JSONRPC']['port'] = int(JSONRPCNotificationPort.GetValue())
 					#pluginConfig['JSONRPC']['retrys'] = int(JSONRPCNotificationRetrys.GetValue())
 					#pluginConfig['JSONRPC']['RetryTime'] = int(JSONRPCNotificationRetryTime.GetValue())
-					panel.SetResult(pluginConfig)
+					panel.SetResult(pluginConfig, (args[0], not(args[0]))[changed])
 
     def __start__(self, pluginConfig={}, *args):
         if type(pluginConfig) is not dict:
@@ -1263,8 +1286,8 @@ class XBMC2(eg.PluginClass):
 #            thread.start()
         except:
             raise self.Exceptions.ProgramNotRunning
-        self.JSON_RPC.connect(ip=pluginConfig['XBMC']['ip'], port=pluginConfig['XBMC']['port'])
-        self.HTTP_API.connect(ip=pluginConfig['XBMC']['ip'], port=pluginConfig['XBMC']['port'])
+        self.JSON_RPC.connect(ip=pluginConfig['XBMC']['ip'], port=pluginConfig['XBMC']['port'], username=pluginConfig['XBMC']['username'], password=pluginConfig['XBMC']['password'])
+        self.HTTP_API.connect(ip=pluginConfig['XBMC']['ip'], port=pluginConfig['XBMC']['port'], username=pluginConfig['XBMC']['username'], password=pluginConfig['XBMC']['password'])
        	self.stopThreadEvent = Event()
 
     def __stop__(self):
