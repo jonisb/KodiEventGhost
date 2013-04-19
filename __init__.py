@@ -614,13 +614,11 @@ class KeyboardPrototype(eg.ActionClass):
 class XBMC_HTTP_API:
 
 	def __init__(self):
-		self.ip = "127.0.0.1"
-		self.port = "80"
-		return
+		pass
 
-	def connect(self, ip=None, port=None):
-		if ip: self.ip = ip
-		if port: self.port = port
+	def connect(self, ip="127.0.0.1", port="80"):
+		self.ip = ip
+		self.port = port
 		print 'HTTP API connected'
 
 	def send(self, method, params = ""):
@@ -656,13 +654,10 @@ class XBMC_JSON_RPC:
 
 	def __init__(self):
 		self.jsoninit = {'jsonrpc':'2.0', 'id':1}
-		self.ip = "127.0.0.1"
-		self.port = "80"
-		return
 
-	def connect(self, ip=None, port=None):
-		if ip: self.ip = ip
-		if port: self.port = port
+	def connect(self, ip="127.0.0.1", port="80"):
+		self.ip = ip
+		self.port = port
 		print 'JSON-RPC connected'
 
 	def send(self, method, params = None):
@@ -1181,19 +1176,17 @@ class XBMC2(eg.PluginClass):
         	pluginConfig = {}
         CheckDefault(self.pluginConfigDefault, pluginConfig)
 
-        self.ip = pluginConfig['XBMC']['ip']
-        self.port = pluginConfig['XBMC']['port']
         self.pluginConfig = pluginConfig
         self.eventsConfig = pluginConfig
         try:
-            self.xbmc.connect(ip=self.ip)
+            self.xbmc.connect(ip=pluginConfig['XBMC']['ip'])
 #            self.stopThreadEvent = Event()
 #            thread = Thread(target=self.ThreadWorker, args=(self.stopThreadEvent,))
 #            thread.start()
         except:
             raise self.Exceptions.ProgramNotRunning
-        self.JSON_RPC.connect(ip=self.ip, port=self.port)
-        self.HTTP_API.connect(ip=self.ip, port=self.port)
+        self.JSON_RPC.connect(ip=pluginConfig['XBMC']['ip'], port=pluginConfig['XBMC']['port'])
+        self.HTTP_API.connect(ip=pluginConfig['XBMC']['ip'], port=pluginConfig['XBMC']['port'])
        	self.stopThreadEvent = Event()
 
     def __stop__(self):
@@ -1222,7 +1215,7 @@ class XBMC2(eg.PluginClass):
 					try:
 						import socket
 						s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-						s.connect((self.ip, self.eventsConfig['JSONRPC']['Port']))
+						s.connect((self.eventsConfig['XBMC']['ip'], self.eventsConfig['JSONRPC']['Port']))
 					except socket.error:
 						retry -= 1
 						import time
