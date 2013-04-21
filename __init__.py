@@ -672,16 +672,40 @@ class XBMC_JSON_RPC:
 		else:
 			if self.jsoninit.has_key('params'):
 				del self.jsoninit['params']
+		request = urllib2.Request('http://'+self.ip+':'+self.port+'/jsonrpc',json.dumps(self.jsoninit))
+		request.add_header("Authorization", "Basic %s" % self.base64string)
+		request.add_header('Content-Type', 'application/json')
 		try:
-			request = urllib2.Request('http://'+self.ip+':'+self.port+'/jsonrpc',json.dumps(self.jsoninit))
-			request.add_header("Authorization", "Basic %s" % self.base64string)
-			request.add_header('Content-Type', 'application/json')
 			responce = urllib2.urlopen(request).read()
-		except IOError:
-			eg.PrintError('JSON-RPC connection error:'+' http://'+self.ip+':'+self.port+'\n'+json.dumps(self.jsoninit))
+		except urllib2.HTTPError as e:
+			#print 'HTTPError', e.args
+			#if hasattr(e, 'reason'): # <--
+			#		print 'We failed to reach a server.'
+			#		print 'Reason: ', e.reason
+			#if hasattr(e, 'code'): # <--
+			#		print 'The server couldn\'t fulfill the request.'
+			#		import BaseHTTPServer
+			#		print 'Error code: ', e.code, BaseHTTPServer.BaseHTTPRequestHandler.responses[e.code]
+			raise
+		except urllib2.URLError as e:
+			#print 'URLError', e.reason, e.args
+			raise
+		except:
+			#import sys
+			#eg.PrintError('JSON-RPC connect error: ' + str(sys.exc_info()))
+			raise
+		#except IOError:
+		#eg.PrintError('JSON-RPC connection error:'+' http://'+self.ip+':'+self.port+'\n'+json.dumps(self.jsoninit))
 		else:
-			#print responce
-			return json.loads(responce)
+			try:
+				#print responce
+				return json.loads(responce)
+			except ValueError as e:
+				#import sys
+				#eg.PrintError("Server responded but didn't provide valid JSON data: " + str(sys.exc_info()))
+				#eg.PrintError("Error data: " + str(e)+': "'+str(responce)+'"')
+				raise
+				
 
 	def close(self):
 		print 'JSON-RPC connection closed'
@@ -1145,14 +1169,28 @@ class XBMC2(eg.PluginClass):
     def Configure(self, pluginConfig={}, *args):
 				changed = False
 				def ConnectionTest(event):
+					print "XBMC2: Starting connection test, trying to connect to XBMC using", panel.combo_box_IP.GetValue()
 					#self.xbmc.connect(ip=panel.combo_box_IP.GetValue().split(':')[0])
 					#self.xbmc.send_notification('XBMC2 for EventGhost', 'Connection test, if you see this your IP address is correct.')
 					#self.xbmc.close()
 					
 					self.JSON_RPC.connect(ip=panel.combo_box_IP.GetValue().split(':')[0], port=panel.combo_box_IP.GetValue().split(':')[1], username=panel.text_ctrl_Username.GetValue(), password=panel.text_ctrl_Password.GetValue())
-					if not self.JSON_RPC.send('GUI.ShowNotification', ast.literal_eval("['XBMC2 for EventGhost','Connection test, JSON-RPC works.']")):
-						eg.PrintError('XBMC2: Not able to connect to XBMC, check your settings.')
-					self.JSON_RPC.close()
+					try:
+						result = self.JSON_RPC.send('GUI.ShowNotification', ast.literal_eval("['XBMC2 for EventGhost','Connection test, JSON-RPC works.']"))
+					except urllib2.HTTPError as e:
+						eg.PrintError('XBMC2:', str(e))
+						print 'XBMC2: Please check that your username and password are correct.'
+					except urllib2.URLError as e:
+						eg.PrintError('XBMC2:', str(e.reason))
+						print 'XBMC2: Please check that XBMC is running, that your IP address and port are correct.\nXBMC2: Also in XBMCs settings\\Services\\Webserver, "Allow control of XBMC via HTTP" needs to be set.'
+					except:
+						import sys
+						eg.PrintError('XBMC2: Unknown error: ' + str(sys.exc_info()))
+					else:
+						if result['result'] == 'OK':
+							print 'XBMC2: JSON-RPC works.'
+					finally:
+						self.JSON_RPC.close()
 
 				def SearchForXBMC(event):
 					#for i in ssdpSearch().keys():
