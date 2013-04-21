@@ -619,15 +619,18 @@ class XBMC_HTTP_API:
 	def connect(self, ip="127.0.0.1", port="80", username='', password=''):
 		self.ip = ip
 		self.port = port
-		self.ip = username
-		self.port = password
+		import base64
+		self.base64string = base64.encodestring('%s:%s' % (username, password)).replace('\n', '')
 		print 'HTTP API connected'
 
 	def send(self, method, params = ""):
+		request = urllib2.Request('http://'+self.ip+':'+self.port+'/xbmcCmds/xbmcHttp?command='+method+'('+urllib2.quote(eg.ParseString(params), ':\\')+')')
+		request.add_header("Authorization", "Basic %s" % self.base64string)
 		try:
-			responce = urllib2.urlopen('http://'+self.username+':'+self.password+'@'+self.ip+':'+self.port+'/xbmcCmds/xbmcHttp?command='+method+'('+urllib2.quote(eg.ParseString(params), ':\\')+')').readlines()
+			responce = urllib2.urlopen(request).readlines()
 		except IOError:
 			eg.PrintError('HTTP API connection error:'+' http://'+self.ip+':'+self.port+'\n'+method+'('+urllib2.quote(eg.ParseString(params), ':\\')+')')
+			raise
 		else:
 			if (''.join(responce).find('<html>') != -1):
 				responce2 = {}
@@ -1170,10 +1173,32 @@ class XBMC2(eg.PluginClass):
 				changed = False
 				def ConnectionTest(event):
 					print "XBMC2: Starting connection test, trying to connect to XBMC using", panel.combo_box_IP.GetValue()
-					#self.xbmc.connect(ip=panel.combo_box_IP.GetValue().split(':')[0])
-					#self.xbmc.send_notification('XBMC2 for EventGhost', 'Connection test, if you see this your IP address is correct.')
-					#self.xbmc.close()
 					
+					self.HTTP_API.connect(ip=panel.combo_box_IP.GetValue().split(':')[0], port=panel.combo_box_IP.GetValue().split(':')[1], username=panel.text_ctrl_Username.GetValue(), password=panel.text_ctrl_Password.GetValue())
+					try:
+						result = self.HTTP_API.send('ExecBuiltIn', 'Notification(XBMC2 for EventGhost,Test)')
+					except urllib2.HTTPError as e:
+						if e.code == 401:
+							eg.PrintError('XBMC2:', str(e))
+							print 'XBMC2: Please check that your username and password are correct.'
+						else:
+							eg.PrintError('XBMC2:', str(e))
+							print 'XBMC2: Please check that XBMC is running, that your IP address and port are correct.\nXBMC2: Also in XBMCs settings\\Network\\Services\\ "Allow control of XBMC via HTTP" needs to be set.'
+					except urllib2.URLError as e:
+						eg.PrintError('XBMC2:', str(e.reason))
+						print 'XBMC2: Please check that XBMC is running, that your IP address and port are correct.\nXBMC2: Also in XBMCs settings\\Network\\Services\\ "Allow control of XBMC via HTTP" needs to be set.'
+					except:
+						import sys
+						eg.PrintError('XBMC2: Unknown error: ' + str(sys.exc_info()))
+					else:
+							if result == 'OK':
+								print 'XBMC2: HTTPAPI works.', result
+							else:
+								eg.PrintError('XBMC2: HTTPAPI error: ', result)
+					finally:
+						self.HTTP_API.close()
+					
+					"""
 					self.JSON_RPC.connect(ip=panel.combo_box_IP.GetValue().split(':')[0], port=panel.combo_box_IP.GetValue().split(':')[1], username=panel.text_ctrl_Username.GetValue(), password=panel.text_ctrl_Password.GetValue())
 					try:
 						result = self.JSON_RPC.send('GUI.ShowNotification', ast.literal_eval("['XBMC2 for EventGhost','Connection test, JSON-RPC works.']"))
@@ -1187,10 +1212,18 @@ class XBMC2(eg.PluginClass):
 						import sys
 						eg.PrintError('XBMC2: Unknown error: ' + str(sys.exc_info()))
 					else:
-						if result['result'] == 'OK':
-							print 'XBMC2: JSON-RPC works.'
+						try:
+							if result['result'] == 'OK':
+								print 'XBMC2: JSON-RPC works.'
+						except KeyError:
+							eg.PrintError('XBMC2: JSON-RPC error: ', str(result['error']['message']))
 					finally:
 						self.JSON_RPC.close()
+					"""
+
+					#self.xbmc.connect(ip=panel.combo_box_IP.GetValue().split(':')[0])
+					#self.xbmc.send_notification('XBMC2 for EventGhost', 'Connection test, if you see this your IP address is correct.')
+					#self.xbmc.close()
 
 				def SearchForXBMC(event):
 					#for i in ssdpSearch().keys():
