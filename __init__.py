@@ -629,7 +629,7 @@ class XBMC_HTTP_API:
 		try:
 			responce = urllib2.urlopen(request).readlines()
 		except IOError:
-			eg.PrintError('HTTP API connection error:'+' http://'+self.ip+':'+self.port+'\n'+method+'('+urllib2.quote(eg.ParseString(params), ':\\')+')')
+			#eg.PrintError('HTTP API connection error:'+' http://'+self.ip+':'+self.port+'\n'+method+'('+urllib2.quote(eg.ParseString(params), ':\\')+')')
 			raise
 		else:
 			if (''.join(responce).find('<html>') != -1):
@@ -1101,6 +1101,60 @@ class JSONRPCEventsDisconnect(eg.ActionClass):
 #        except:
 #            raise self.Exceptions.ProgramNotRunning
 
+def ssdpSearch():
+	import socket
+	from urlparse import urlparse
+
+	MCAST_GRP = '239.255.255.250'
+	MCAST_PORT = 1900
+	LIB_ID = 'upnp'
+	DISCOVERY_MSG = ('M-SEARCH * HTTP/1.1\r\n' +
+									'ST: %(library)s:%(service)s\r\n' +
+									'MX: 3\r\n' +
+									'MAN: "ssdp:discover"\r\n' +
+									'HOST: 239.255.255.250:1900\r\n\r\n')
+
+	def interface_addresses(family=socket.AF_INET):
+			for fam, _, _, _, sockaddr in socket.getaddrinfo('', None):
+					if family == fam:
+							yield sockaddr[0]
+
+	msg = DISCOVERY_MSG % dict(service='rootdevice', library=LIB_ID)
+	socket.setdefaulttimeout(3)
+	USNCache = []
+	ssdpResultList = []
+	XBMCResultList = {}
+	for addr in interface_addresses():
+		sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+		sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+		sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 2)
+		sock.bind((addr, 0))
+
+		for _ in xrange(2):
+			sock.sendto(msg, (MCAST_GRP, MCAST_PORT))
+
+		while True:
+			try:
+				data = sock.recv(1024).splitlines()
+			except socket.timeout:
+					print 'XBMC2: Search finished'
+					break
+			else:
+				if "HTTP/1.1 200 OK" in data[0]:
+					for i in data:
+						if "USN:" in i.upper():
+							if i.split(':', 1)[1] not in USNCache:
+								for j in data:
+									if "LOCATION:" in j.upper():
+										USNCache.append(i.split(':', 1)[1])
+										ssdpResultList.append(j.split(':', 1)[1])
+	for result in ssdpResultList:
+		doc = xml.dom.minidom.parse(urllib2.urlopen(result))
+		for modelName in doc.getElementsByTagName("modelName"):
+			if modelName.firstChild.data == 'XBMC Media Center':
+				XBMCResultList[urlparse(doc.getElementsByTagName("presentationURL")[0].firstChild.data).netloc] = doc.getElementsByTagName("friendlyName")[0].firstChild.data
+	return XBMCResultList
+
 def CheckDefault(Dict1, Dict2):
 	for i in Dict1.iterkeys():
 		if type(Dict1[i]) is dict:
@@ -1226,9 +1280,9 @@ class XBMC2(eg.PluginClass):
 					#self.xbmc.close()
 
 				def SearchForXBMC(event):
-					#for i in ssdpSearch().keys():
-					#	panel.combo_box_IP.Append(i)
-					pass
+					for i in ssdpSearch().keys():
+						panel.combo_box_IP.Append(i)
+
 				def initPanel(self):
 					self.combo_box_IP = wx.ComboBox(self, wx.ID_ANY, value=pluginConfig['XBMC']['ip']+':'+pluginConfig['XBMC']['port'], choices=["127.0.0.1:80"], style=wx.CB_DROPDOWN)
 					self.button_IPTest = wx.Button(self, wx.ID_ANY, "Test")
