@@ -1070,27 +1070,6 @@ class JSONRPC(eg.ActionClass):
 		while panel.Affirmed():
 			panel.SetResult(HBoxControl.GetValue()+'.'+comboBoxControl.GetValue(), textControl2.GetValue(), CheckBox.GetValue())
 
-class JSONRPCEventsConnect(eg.ActionClass):
-	description = "Connect to XBMC to recieve JSON-RPC events"
-
-	def __call__(self):
-		self.plugin.stopThreadEvent.clear()
-		try:
-			if not self.plugin.JSONRPCEventsThread.isAlive():
-				self.plugin.JSONRPCEventsThread = Thread(target=self.plugin.JSONRPCEvents, args=(self.plugin.stopThreadEvent,))
-				self.plugin.JSONRPCEventsThread.start()
-			else:
-				print "Already connected."
-		except AttributeError:
-			self.plugin.JSONRPCEventsThread = Thread(target=self.plugin.JSONRPCEvents, args=(self.plugin.stopThreadEvent,))
-			self.plugin.JSONRPCEventsThread.start()
-
-class JSONRPCEventsDisconnect(eg.ActionClass):
-	description = "Stop reciving JSON-RPC events from XBMC"
-
-	def __call__(self):
-		self.plugin.stopThreadEvent.set()
-
 #class StopRepeating(eg.ActionClass):
 #    name = "Stop Repeating"
 #    description = "Stops a button repeating."
@@ -1104,6 +1083,16 @@ class JSONRPCEventsDisconnect(eg.ActionClass):
 def ssdpSearch():
 	import socket
 	from urlparse import urlparse
+	def Headers(data):
+		headers = {}
+		for line in data.splitlines():
+			if not line.split(':', 1)[0]:
+				continue
+			try:
+				headers[line.split(':', 1)[0].upper()] = line.split(':', 1)[1]
+			except:
+				headers['Start-line'] = line.split(':', 1)[0]
+		return headers
 
 	MCAST_GRP = '239.255.255.250'
 	MCAST_PORT = 1900
@@ -1135,19 +1124,17 @@ def ssdpSearch():
 
 		while True:
 			try:
-				data = sock.recv(1024).splitlines()
+				#data = sock.recv(1024).splitlines()
+				data = sock.recv(1024)
 			except socket.timeout:
 					print 'XBMC2: Search finished'
 					break
 			else:
-				if "HTTP/1.1 200 OK" in data[0]:
-					for i in data:
-						if "USN:" in i.upper():
-							if i.split(':', 1)[1] not in USNCache:
-								for j in data:
-									if "LOCATION:" in j.upper():
-										USNCache.append(i.split(':', 1)[1])
-										ssdpResultList.append(j.split(':', 1)[1])
+				headers = Headers(data)
+				if "HTTP/1.1 200 OK" == headers['Start-line']:
+					if headers['USN'] not in USNCache:
+						USNCache.append(headers['USN'])
+						ssdpResultList.append(headers['LOCATION'])
 	for result in ssdpResultList:
 		doc = xml.dom.minidom.parse(urllib2.urlopen(result))
 		for modelName in doc.getElementsByTagName("modelName"):
@@ -1177,6 +1164,7 @@ class XBMC2(eg.PluginClass):
     		'password': '', 
     	}, 
     	'JSONRPC': {
+    		'Enable': False, 
     		'port': '9090', 
     		'retrys': 5, 
     		'RetryTime': 5, 
@@ -1215,16 +1203,14 @@ class XBMC2(eg.PluginClass):
         TestGroup.AddAction(HTTPAPI)
         TestGroup.AddAction(GetCurrentlyPlayingFilename)
         TestGroup.AddAction(SendNotification)
-        TestGroup.AddAction(JSONRPCEventsConnect)
-        TestGroup.AddAction(JSONRPCEventsDisconnect)
 
 #        self.AddAction(StopRepeating)
         self.xbmc = XBMCClient("EventGhost")
         self.JSON_RPC = XBMC_JSON_RPC()
         self.HTTP_API = XBMC_HTTP_API()
+        self.stopJSONRPCNotifications = Event()
 
     def Configure(self, pluginConfig={}, *args):
-				changed = False
 				def ConnectionTest(event):
 					print "XBMC2: Starting connection test, trying to connect to XBMC using", panel.combo_box_IP.GetValue()
 					
@@ -1319,6 +1305,7 @@ class XBMC2(eg.PluginClass):
 					self.text_ctrl_Username.SetToolTipString("Username that are specified in XBMC")
 					self.text_ctrl_Password.SetToolTipString("Password that are specified in XBMC")
 					self.checkbox_JSONRPCEnable.SetToolTipString("Enable JSON-RPC notifications")
+					self.checkbox_JSONRPCEnable.SetValue(pluginConfig['JSONRPC']['Enable'])
 					self.spin_ctrl_JSONRPCPort.SetMinSize((60, -1))
 					self.spin_ctrl_JSONRPCPort.SetToolTipString("Port used by XBMC to recieve notifications")
 					self.spin_ctrl_Retrys.SetMinSize((50, -1))
@@ -1381,6 +1368,7 @@ class XBMC2(eg.PluginClass):
 #            validator=eg.DigitOnlyValidator()
 #        )
 				while panel.Affirmed():
+					changed = False
 					if pluginConfig['XBMC']['ip'] != panel.combo_box_IP.GetValue().split(':')[0]:
 						pluginConfig['XBMC']['ip'] = panel.combo_box_IP.GetValue().split(':')[0]
 						changed = True
@@ -1393,6 +1381,9 @@ class XBMC2(eg.PluginClass):
 					if pluginConfig['XBMC']['password'] != panel.text_ctrl_Password.GetValue():
 						pluginConfig['XBMC']['password'] = panel.text_ctrl_Password.GetValue()
 						changed = True
+					if pluginConfig['JSONRPC']['Enable'] != panel.checkbox_JSONRPCEnable.GetValue():
+						pluginConfig['JSONRPC']['Enable'] = panel.checkbox_JSONRPCEnable.GetValue()
+						changed = True						
 					#pluginConfig['JSONRPC']['port'] = int(JSONRPCNotificationPort.GetValue())
 					#pluginConfig['JSONRPC']['retrys'] = int(JSONRPCNotificationRetrys.GetValue())
 					#pluginConfig['JSONRPC']['RetryTime'] = int(JSONRPCNotificationRetryTime.GetValue())
@@ -1406,18 +1397,18 @@ class XBMC2(eg.PluginClass):
         self.pluginConfig = pluginConfig
         try:
             self.xbmc.connect(ip=pluginConfig['XBMC']['ip'])
-#            self.stopThreadEvent = Event()
-#            thread = Thread(target=self.ThreadWorker, args=(self.stopThreadEvent,))
-#            thread.start()
         except:
             raise self.Exceptions.ProgramNotRunning
         self.JSON_RPC.connect(ip=pluginConfig['XBMC']['ip'], port=pluginConfig['XBMC']['port'], username=pluginConfig['XBMC']['username'], password=pluginConfig['XBMC']['password'])
         self.HTTP_API.connect(ip=pluginConfig['XBMC']['ip'], port=pluginConfig['XBMC']['port'], username=pluginConfig['XBMC']['username'], password=pluginConfig['XBMC']['password'])
-       	self.stopThreadEvent = Event()
+       	if self.pluginConfig['JSONRPC']['Enable']:
+					self.stopJSONRPCNotifications.clear()
+					JSONRPCNotificationsThread = Thread(target=self.JSONRPCNotifications, args=(self.stopJSONRPCNotifications,))
+					JSONRPCNotificationsThread.start()
 
     def __stop__(self):
+        self.stopJSONRPCNotifications.set()
         try:
-            self.stopThreadEvent.set()
             self.xbmc.close()
         except:
             pass
@@ -1430,45 +1421,136 @@ class XBMC2(eg.PluginClass):
 #            self.TriggerEvent("MyTimerEvent")
 #            stopThreadEvent.wait(10.0)
 
-    def JSONRPCEvents(self, stopThreadEvent):
-			retrys = self.pluginConfig['JSONRPC']['Retrys']
-			retryTime = self.pluginConfig['JSONRPC']['RetryTime']
-
-			try:
-				retry = retrys
-				while retry:
-					print 'try # ' + str(retrys + 1 - retry)
+    def JSONRPCNotifications(self, stopJSONRPCNotifications):
+			import socket
+			socket.setdefaulttimeout(3)
+			def Headers(data):
+				headers = {}
+				for line in data.splitlines():
+					if not line.split(':', 1)[0]:
+						continue
 					try:
-						import socket
-						s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-						s.connect((self.pluginConfig['XBMC']['ip'], self.pluginConfig['JSONRPC']['Port']))
-					except socket.error:
-						retry -= 1
-						import time
-						time.sleep(retryTime)
+						headers[line.split(':', 1)[0].upper()] = line.split(':', 1)[1]
+					except:
+						headers['Start-line'] = line.split(':', 1)[0]
+				return headers
+			def interface_addresses(family=socket.AF_INET):
+				for fam, _, _, _, sockaddr in socket.getaddrinfo('', None):
+					if family == fam:
+						yield sockaddr[0]
+
+			def WaitForXBMC():
+				import struct
+				USNCache = []
+				XBMCDetected = False
+			
+				sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+				sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+				mreq = struct.pack("4sl", socket.inet_aton(SSDP_IP), socket.INADDR_ANY)
+				sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
+				sock.bind(('', SSDP_PORT))
+
+				#print 'XBMC2: SSDP is on'
+				while not (stopJSONRPCNotifications.isSet() or XBMCDetected):
+					try:
+						headers = Headers(sock.recv(4024))
+					except socket.timeout:
+						#print 'timeout'
+						pass
 					else:
-						break
-				if not retry:
-					eg.PrintError("Can't connect via JSON-RPC to XBMC")
-					return
-			except:
-				import sys
-				eg.PrintError('JSON-RPC connect error: ' + str(sys.exc_info()))
-				return
-			print 'Listening for XBMC events'
-			while not stopThreadEvent.isSet():
+						if "NOTIFY * HTTP/1.1" == headers['Start-line']:
+							if headers['USN'].split(':', 2)[1] not in USNCache:
+								try:
+									doc = xml.dom.minidom.parse(urllib2.urlopen(headers['LOCATION']))
+								except:
+									continue
+								else:
+									for modelName in doc.getElementsByTagName("modelName"):
+										if modelName.firstChild.data == 'XBMC Media Center':
+											from urlparse import urlparse
+											if self.pluginConfig['XBMC']['ip'] == '127.0.0.1':
+												for ip in interface_addresses():
+													if urlparse(doc.getElementsByTagName("presentationURL")[0].firstChild.data).netloc == ip+':'+self.pluginConfig['XBMC']['port']:
+														XBMCDetected = True
+														break												
+											else:
+												if urlparse(doc.getElementsByTagName("presentationURL")[0].firstChild.data).netloc == self.pluginConfig['XBMC']['ip']+':'+self.pluginConfig['XBMC']['port']:
+													XBMCDetected = True
+									USNCache.append(headers['USN'].split(':', 2)[1])
+				sock.close()
+				#print 'XBMC2: SSDP is off'
+
+			SSDP_IP = '239.255.255.250'
+			SSDP_PORT = 1900
+			print "XBMC2: Activating JSON-RPC notifications"
+			while not stopJSONRPCNotifications.isSet():
+				s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 				try:
-					message = s.recv(8192)
-					if not message:
-						break
-					message = json.loads(message)
-					#if self.eventlog:
-					#	print "Raw event: %s" % repr(message)
-					event = message['method']
-					payload = message['params']['data']
-				except:
-					eg.PrintError('Error: JSON-RPC event' + str(sys.exc_info()))
-				if not stopThreadEvent.isSet():
-					self.TriggerEvent(event, payload)
-			s.close()
-			print 'Not listening for XBMC events'
+					s.connect((self.pluginConfig['XBMC']['ip'], int(self.pluginConfig['JSONRPC']['port'])))
+				except socket.error:
+					#import sys
+					#eg.PrintError('XBMC2: connection error: ' + str(sys.exc_info()))
+					WaitForXBMC()
+				else:
+					print "XBMC2: Connected to XBMC, ready to recive JSON-RPC notifications."
+					self.TriggerEvent('System.OnStart')
+					message = ''
+					while not stopJSONRPCNotifications.isSet():
+						try:
+							message += s.recv(4096)
+							#print len(message)
+							if not message:
+								break
+						except socket.timeout:
+							#print 'XBMC2: JSON timeout'
+							continue
+						except socket.error:
+							import sys
+							eg.PrintError('XBMC2: JSON socket.error: ' + str(sys.exc_info()[1]))
+							break
+						except:
+							import sys
+							eg.PrintError('XBMC2: Error: JSON-RPC event ' + str(sys.exc_info()))
+							break
+						else:
+							if self.pluginConfig['LogRawEvents']:
+								print "XBMC2: Raw event: %s" % repr(message)
+							try:
+								message = json.loads(message)
+							except:
+								#import sys
+								#eg.PrintError('XBMC2: Error: JSON-RPC event ' + str(sys.exc_info()))
+								continue
+							else:
+								if self.pluginConfig['LogRawEvents']:
+									print "Raw event: %s" % repr(message)
+								try:
+									event = message['method']
+								except:
+									eg.PrintError('XBMC2: Error: JSON-RPC event, "method" missing ' + repr(message))
+									self.PrintError('JSON unrecogniced event type: \n' + "Raw event: %s" % repr(message))
+								else:
+									try:
+										payload = message['params']['data']
+									except KeyError:
+										pass
+									else:
+										if payload:
+											try:
+												event += '.' + payload['item']['type']
+												del payload['item']['type']
+												if not payload['item']:
+													del payload['item']
+											except KeyError:
+												try:
+													event += '.' + payload['type']
+													del payload['type']
+												except KeyError:
+													#self.PrintError('JSON unrecogniced event type: \n' + "Raw event: %s" % repr(message))
+													pass
+									if not stopJSONRPCNotifications.isSet():
+										self.TriggerEvent(event, payload)
+						message = ''
+					s.close()
+					print "XBMC2: Disconnected from XBMC, not reciveing JSON-RPC notifications."
+			print "XBMC2: Deactivating JSON-RPC notifications"
