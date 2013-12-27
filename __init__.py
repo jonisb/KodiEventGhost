@@ -22,6 +22,8 @@ import json
 import ast
 import xml.dom.minidom
 from xml.dom.minidom import Node
+import socket
+import base64
 
 from threading import Event, Thread
 
@@ -619,7 +621,7 @@ class XBMC_HTTP_API:
 	def connect(self, ip="127.0.0.1", port="80", username='', password=''):
 		self.ip = ip
 		self.port = port
-		import base64
+		#import base64
 		self.base64string = base64.encodestring('%s:%s' % (username, password)).replace('\n', '')
 		print 'HTTP API connected'
 
@@ -663,7 +665,7 @@ class XBMC_JSON_RPC:
 	def connect(self, ip="127.0.0.1", port="80", username='', password=''):
 		self.ip = ip
 		self.port = port
-		import base64
+		#import base64
 		self.base64string = base64.encodestring('%s:%s' % (username, password)).replace('\n', '')
 		#self.base64string = base64.encodestring('%s:%s' % (username, password))[:-1]
 		print 'JSON-RPC connected'
@@ -708,7 +710,7 @@ class XBMC_JSON_RPC:
 				#eg.PrintError("Server responded but didn't provide valid JSON data: " + str(sys.exc_info()))
 				#eg.PrintError("Error data: " + str(e)+': "'+str(responce)+'"')
 				raise
-				
+
 
 	def close(self):
 		print 'JSON-RPC connection closed'
@@ -1152,29 +1154,29 @@ def CheckDefault(Dict1, Dict2):
 		else:
 			if not Dict2.has_key(i):
 				Dict2[i] = Dict1[i]
-				
+
 # And now we define the actual plugin:
 
 class XBMC2(eg.PluginClass):
     pluginConfigDefault = {
     	'XBMC': {
-    		'ip': '127.0.0.1', 
-    		'port': 80, 
-    		'username': '', 
-    		'password': '', 
-    	}, 
+    		'ip': '127.0.0.1',
+    		'port': 80,
+    		'username': '',
+    		'password': '',
+    	},
     	'JSONRPC': {
-    		'enable': False, 
-    		'port': 9090, 
-    		#'retrys': 5, 
-    		#'retryTime': 5, 
-    	}, 
+    		'enable': False,
+    		'port': 9090,
+    		#'retrys': 5,
+    		#'retryTime': 5,
+    	},
     	'Broadcast':{
-				'enable': False, 
-				'port': 8278, 
-				#'workaround': False, 
-    	}, 
-    	'logRawEvents': False, 
+				'enable': False,
+				'port': 8278,
+				#'workaround': False,
+    	},
+    	'logRawEvents': False,
     }
 
     def __init__(self):
@@ -1214,7 +1216,7 @@ class XBMC2(eg.PluginClass):
     def Configure(self, pluginConfig={}, *args):
 				def ConnectionTest(event):
 					print "XBMC2: Starting connection test, trying to connect to XBMC using", panel.combo_box_IP.GetValue()
-					
+
 					self.HTTP_API.connect(ip=panel.combo_box_IP.GetValue().split(':')[0], port=panel.combo_box_IP.GetValue().split(':')[1], username=panel.text_ctrl_Username.GetValue(), password=panel.text_ctrl_Password.GetValue())
 					try:
 						result = self.HTTP_API.send('ExecBuiltIn', 'Notification(XBMC2 for EventGhost,Test)')
@@ -1238,7 +1240,7 @@ class XBMC2(eg.PluginClass):
 								eg.PrintError('XBMC2: HTTPAPI error: ', result)
 					finally:
 						self.HTTP_API.close()
-					
+
 					"""
 					self.JSON_RPC.connect(ip=panel.combo_box_IP.GetValue().split(':')[0], port=panel.combo_box_IP.GetValue().split(':')[1], username=panel.text_ctrl_Username.GetValue(), password=panel.text_ctrl_Password.GetValue())
 					try:
@@ -1296,7 +1298,7 @@ class XBMC2(eg.PluginClass):
 					self.checkbox_logRawEvents = wx.CheckBox(self, wx.ID_ANY, "Log raw events")
 					self.sizer_Events_staticbox = wx.StaticBox(self, wx.ID_ANY, "Event settings")
 					self.button_IPTest.Bind(wx.EVT_BUTTON, ConnectionTest)
-					self.button_Search.Bind(wx.EVT_BUTTON, SearchForXBMC)				
+					self.button_Search.Bind(wx.EVT_BUTTON, SearchForXBMC)
 					setPanelProperties(self)
 					doPanelLayout(self)
 				def setPanelProperties(self):
@@ -1389,13 +1391,13 @@ class XBMC2(eg.PluginClass):
 						changed = True
 					if pluginConfig['JSONRPC']['enable'] != panel.checkbox_JSONRPCEnable.GetValue():
 						pluginConfig['JSONRPC']['enable'] = panel.checkbox_JSONRPCEnable.GetValue()
-						changed = True						
+						changed = True
 					if pluginConfig['JSONRPC']['port'] != int(panel.spin_ctrl_JSONRPCPort.GetValue()):
 						pluginConfig['JSONRPC']['port'] = int(panel.spin_ctrl_JSONRPCPort.GetValue())
-						changed = True						
+						changed = True
 					if pluginConfig['Broadcast']['enable'] != panel.checkbox_BroadcastEnable.GetValue():
 						pluginConfig['Broadcast']['enable'] = panel.checkbox_BroadcastEnable.GetValue()
-						changed = True						
+						changed = True
 					if pluginConfig['Broadcast']['port'] != int(panel.spin_ctrl_BroadcastPort.GetValue()):
 						pluginConfig['Broadcast']['port'] = int(panel.spin_ctrl_BroadcastPort.GetValue())
 						changed = True
@@ -1446,7 +1448,7 @@ class XBMC2(eg.PluginClass):
 #            stopThreadEvent.wait(10.0)
 
     def JSONRPCNotifications(self, stopJSONRPCNotifications):
-			import socket
+			#import socket
 			socket.setdefaulttimeout(3)
 			def Headers(data):
 				headers = {}
@@ -1467,7 +1469,7 @@ class XBMC2(eg.PluginClass):
 				import struct
 				USNCache = []
 				XBMCDetected = False
-			
+
 				sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
 				sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 				mreq = struct.pack("4sl", socket.inet_aton(SSDP_IP), socket.INADDR_ANY)
@@ -1496,7 +1498,7 @@ class XBMC2(eg.PluginClass):
 												for ip in interface_addresses():
 													if urlparse(doc.getElementsByTagName("presentationURL")[0].firstChild.data).netloc == ip+':'+str(self.pluginConfig['XBMC']['port']):
 														XBMCDetected = True
-														break												
+														break
 											else:
 												if urlparse(doc.getElementsByTagName("presentationURL")[0].firstChild.data).netloc == self.pluginConfig['XBMC']['ip']+':'+str(self.pluginConfig['XBMC']['port']):
 													XBMCDetected = True
