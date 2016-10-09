@@ -35,7 +35,7 @@ from threading import Event, Thread
 eg.RegisterPlugin(
     name = "XBMC2",
     author = "Joni Boren",
-    version = "0.6.30",
+    version = "0.6.31",
     kind = "program",
     guid = "{8C8B850C-773F-4583-AAD9-A568262B7933}",
     canMultiLoad = True,
@@ -1942,7 +1942,10 @@ class XBMC2(eg.PluginClass):
 			def SSDPInit(SSDP_IP, SSDP_PORT):
 				sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
 				sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+				sock.settimeout(10)
+				sock.bind(('', SSDP_PORT))
 				mreq = struct.pack("4sl", socket.inet_aton(SSDP_IP), socket.INADDR_ANY)
+				sock.setsockopt(socket.IPPROTO_IP, socket.SO_DEBUG, True)
 				try:
 					sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
 				except:
@@ -1959,8 +1962,8 @@ class XBMC2(eg.PluginClass):
 						import sys, traceback
 						traceback.print_exc()
 						raise
-				sock.settimeout(10)
-				sock.bind(('', SSDP_PORT))
+				#sock.settimeout(10)
+				#sock.bind(('', SSDP_PORT))
 				return sock
 			def Headers(data):
 				headers = {}
