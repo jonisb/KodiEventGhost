@@ -33,7 +33,7 @@ from threading import Event, Thread
 eg.RegisterPlugin(
     name = "XBMC2",
     author = "Joni Boren",
-    version = "0.6.9",
+    version = "0.6.10",
     kind = "program",
     guid = "{8C8B850C-773F-4583-AAD9-A568262B7933}",
     canMultiLoad = True,
@@ -1541,10 +1541,10 @@ class XBMC2(eg.PluginClass):
 								else:
 									for modelName in doc.getElementsByTagName("modelName"):
 										if modelName.firstChild.data == 'XBMC Media Center':
-											with open(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2', 'ssdp.log'), 'a') as f:
-												f.write(data)
-												f.write(urllib2.urlopen(headers['LOCATION']).read())
 											if debug:
+												with open(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2', 'ssdp.log'), 'a') as f:
+													f.write(data)
+													f.write(urllib2.urlopen(headers['LOCATION']).read())
 												print 'XBMC2: SSDP modelName:', modelName.firstChild.data
 											#from urlparse import urlparse
 											if self.pluginConfig['XBMC']['ip'] == '127.0.0.1':
