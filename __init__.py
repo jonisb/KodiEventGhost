@@ -1517,7 +1517,7 @@ class XBMC2(eg.PluginClass):
 					if debug:
 						print 'XBMC2: SSDP: Wait for event.'
 					try:
-						headers = Headers(sock.recv(4024))
+						headers = Headers(sock.recv(4096))
 					except socket.timeout:
 						if debug:
 							print 'XBMC2: SSDP: Wait for event: Timeout.'
@@ -1532,6 +1532,8 @@ class XBMC2(eg.PluginClass):
 								else:
 									for modelName in doc.getElementsByTagName("modelName"):
 										if modelName.firstChild.data == 'XBMC Media Center':
+											if debug:
+												print 'XBMC2: SSDP modelName:', modelName.firstChild.data
 											#from urlparse import urlparse
 											if self.pluginConfig['XBMC']['ip'] == '127.0.0.1':
 												for ip in interface_addresses():
@@ -1539,6 +1541,8 @@ class XBMC2(eg.PluginClass):
 														XBMCDetected = True
 														break
 											else:
+												if debug:
+													print 'XBMC2: SSDP address:', urlparse(doc.getElementsByTagName("presentationURL")[0].firstChild.data).netloc
 												if urlparse(doc.getElementsByTagName("presentationURL")[0].firstChild.data).netloc == self.pluginConfig['XBMC']['ip']+':'+str(self.pluginConfig['XBMC']['port']):
 													XBMCDetected = True
 									USNCache.append(headers['USN'].split(':', 2)[1])
