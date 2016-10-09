@@ -35,7 +35,7 @@ from threading import Event, Thread
 eg.RegisterPlugin(
     name = "XBMC2",
     author = "Joni Boren",
-    version = "0.6.31",
+    version = "0.6.32",
     kind = "program",
     guid = "{8C8B850C-773F-4583-AAD9-A568262B7933}",
     canMultiLoad = True,
@@ -2088,6 +2088,12 @@ class XBMC2(eg.PluginClass):
 									if debug:
 										print 'XBMC2: SSDP: No USN in headers:', headers
 									continue
+							elif "M-SEARCH * HTTP/1.1" == headers['Start-line']:
+								if 'Kodi' in headers['USER-AGENT']:
+									if debug:
+										print 'XBMC2: SSDP: Found search message from Kodi:', headers['USER-AGENT']
+									XBMCDetected = True
+									break
 						except KeyError:
 							if debug:
 								print 'XBMC2: SSDP: "Start-line" test failed: Content of headers:', headers
