@@ -1952,7 +1952,7 @@ class XBMC2(eg.PluginClass):
 						traceback.print_exc()
 					try:
 						INTERFACE_ADDR = socket.gethostbyname(socket.gethostname())
-						mreq = socket.inet_aton(_SSDP_IP) + socket.inet_aton(INTERFACE_ADDR)
+						mreq = socket.inet_aton(SSDP_IP) + socket.inet_aton(INTERFACE_ADDR)
 						sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
 					except:
 						eg.PrintError('JSON-RPC connect error: ')
