@@ -33,7 +33,7 @@ from threading import Event, Thread
 eg.RegisterPlugin(
     name = "XBMC2",
     author = "Joni Boren",
-    version = "0.6.11",
+    version = "0.6.12",
     kind = "program",
     guid = "{8C8B850C-773F-4583-AAD9-A568262B7933}",
     canMultiLoad = True,
@@ -1172,6 +1172,10 @@ class XBMC2(eg.PluginClass):
     		'username': '',
     		'password': '',
     	},
+    	'EventServer': {
+    		'enable': True,
+    		'port': 9777,
+    	},
     	'JSONRPC': {
     		'enable': False,
     		'port': 9090,
@@ -1287,6 +1291,10 @@ class XBMC2(eg.PluginClass):
 					self.label_Password = wx.StaticText(self, wx.ID_ANY, "Password")
 					self.text_ctrl_Password = wx.TextCtrl(self, wx.ID_ANY, pluginConfig['XBMC']['password'], style=wx.TE_PASSWORD)
 					self.sizer_Global_staticbox = wx.StaticBox(self, wx.ID_ANY, "IP address and port of XBMC (127.0.01 is this computer)")
+					self.checkbox_EventServerEnable = wx.CheckBox(self, wx.ID_ANY, "Enable")
+					self.label_EventServerPort = wx.StaticText(self, wx.ID_ANY, "Port")
+					self.spin_ctrl_EventServerPort = wx.SpinCtrl(self, wx.ID_ANY, str(pluginConfig['EventServer']['port']), min=0, max=65535)
+					self.sizer_EventServer_staticbox = wx.StaticBox(self, wx.ID_ANY, "EventServer")
 					self.checkbox_JSONRPCEnable = wx.CheckBox(self, wx.ID_ANY, "Enable")
 					self.label_Port = wx.StaticText(self, wx.ID_ANY, "Port")
 					self.spin_ctrl_JSONRPCPort = wx.SpinCtrl(self, wx.ID_ANY, str(pluginConfig['JSONRPC']['port']), min=0, max=65535)
@@ -1314,6 +1322,10 @@ class XBMC2(eg.PluginClass):
 					self.button_Search.SetToolTipString("Search for any XBMCs that are running and reachable over the LAN.")
 					self.text_ctrl_Username.SetToolTipString("Username that are specified in XBMC")
 					self.text_ctrl_Password.SetToolTipString("Password that are specified in XBMC")
+					self.checkbox_EventServerEnable.Enable(False)
+					self.checkbox_EventServerEnable.SetValue(1)
+					self.spin_ctrl_EventServerPort.SetMinSize((60, -1))
+					self.spin_ctrl_EventServerPort.SetToolTipString("Port used by XBMC to recieve notifications")
 					self.checkbox_JSONRPCEnable.SetToolTipString("Enable JSON-RPC notifications")
 					self.checkbox_JSONRPCEnable.SetValue(pluginConfig['JSONRPC']['enable'])
 					self.checkbox_BroadcastEnable.SetValue(pluginConfig['Broadcast']['enable'])
@@ -1334,6 +1346,10 @@ class XBMC2(eg.PluginClass):
 					self.sizer_JSONRPC_staticbox.Lower()
 					sizer_JSONRPC = wx.StaticBoxSizer(self.sizer_JSONRPC_staticbox, wx.VERTICAL)
 					sizer_14 = wx.BoxSizer(wx.HORIZONTAL)
+					sizer_2 = wx.BoxSizer(wx.HORIZONTAL)
+					self.sizer_EventServer_staticbox.Lower()
+					sizer_EventServer = wx.StaticBoxSizer(self.sizer_EventServer_staticbox, wx.VERTICAL)
+					sizer_1 = wx.BoxSizer(wx.HORIZONTAL)
 					self.sizer_Global_staticbox.Lower()
 					sizer_Global = wx.StaticBoxSizer(self.sizer_Global_staticbox, wx.VERTICAL)
 					sizer_Password = wx.BoxSizer(wx.HORIZONTAL)
@@ -1347,7 +1363,13 @@ class XBMC2(eg.PluginClass):
 					sizer_Password.Add(self.label_Password, 0, 0, 0)
 					sizer_Password.Add(self.text_ctrl_Password, 0, 0, 0)
 					sizer_Global.Add(sizer_Password, 1, wx.EXPAND, 0)
-					self.sizer.Add(sizer_Global, 0, 0, 0)
+					sizer_2.Add(sizer_Global, 0, 0, 0)
+					sizer_EventServer.Add(self.checkbox_EventServerEnable, 0, 0, 0)
+					sizer_1.Add(self.label_EventServerPort, 0, 0, 0)
+					sizer_1.Add(self.spin_ctrl_EventServerPort, 0, 0, 0)
+					sizer_EventServer.Add(sizer_1, 1, wx.SHAPED, 0)
+					sizer_2.Add(sizer_EventServer, 0, wx.SHAPED, 0)
+					self.sizer.Add(sizer_2, 0, wx.EXPAND, 0)
 					sizer_JSONRPC.Add(self.checkbox_JSONRPCEnable, 0, 0, 0)
 					sizer_14.Add(self.label_Port, 0, 0, 0)
 					sizer_14.Add(self.spin_ctrl_JSONRPCPort, 0, 0, 0)
@@ -1395,6 +1417,9 @@ class XBMC2(eg.PluginClass):
 					if pluginConfig['XBMC']['password'] != panel.text_ctrl_Password.GetValue():
 						pluginConfig['XBMC']['password'] = panel.text_ctrl_Password.GetValue()
 						changed = True
+					if pluginConfig['EventServer']['port'] != int(panel.spin_ctrl_EventServerPort.GetValue()):
+						pluginConfig['EventServer']['port'] = int(panel.spin_ctrl_EventServerPort.GetValue())
+						changed = True
 					if pluginConfig['JSONRPC']['enable'] != panel.checkbox_JSONRPCEnable.GetValue():
 						pluginConfig['JSONRPC']['enable'] = panel.checkbox_JSONRPCEnable.GetValue()
 						changed = True
@@ -1424,7 +1449,7 @@ class XBMC2(eg.PluginClass):
 
 				self.pluginConfig = pluginConfig
 				try:
-						self.xbmc.connect(ip=pluginConfig['XBMC']['ip'])
+						self.xbmc.connect(ip=pluginConfig['XBMC']['ip'], port=pluginConfig['EventServer']['port'])
 				except:
 						raise self.Exceptions.ProgramNotRunning
 				self.JSON_RPC.connect(ip=pluginConfig['XBMC']['ip'], port=pluginConfig['XBMC']['port'], username=pluginConfig['XBMC']['username'], password=pluginConfig['XBMC']['password'])
