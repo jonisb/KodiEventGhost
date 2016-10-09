@@ -1085,6 +1085,7 @@ class JSONRPC(eg.ActionClass):
 def ssdpSearch():
 	import socket
 	from urlparse import urlparse
+	import os
 	def Headers(data):
 		headers = {}
 		for line in data.splitlines():
@@ -1138,7 +1139,12 @@ def ssdpSearch():
 					if headers['USN'] not in USNCache:
 						USNCache.append(headers['USN'])
 						ssdpResultList.append(headers['LOCATION'])
+						with open(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2', 'ssdp.log'), 'a') as f:
+							f.write(data)
+
 	for result in ssdpResultList:
+		with open(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2', 'ssdp.log'), 'a') as f:
+			f.write(urllib2.urlopen(result).read())
 		doc = xml.dom.minidom.parse(urllib2.urlopen(result))
 		for modelName in doc.getElementsByTagName("modelName"):
 			if modelName.firstChild.data == 'XBMC Media Center':
@@ -1462,7 +1468,8 @@ class XBMC2(eg.PluginClass):
 #            stopThreadEvent.wait(10.0)
 
     def JSONRPCNotifications(self, stopJSONRPCNotifications):
-			debug = True
+			import os
+			debug = False
 			#import socket
 			#socket.setdefaulttimeout(3)
 			def Headers(data):
@@ -1517,7 +1524,9 @@ class XBMC2(eg.PluginClass):
 					if debug:
 						print 'XBMC2: SSDP: Wait for event.'
 					try:
-						headers = Headers(sock.recv(4096))
+						data = sock.recv(4096)
+						headers = Headers(data)
+						#headers = Headers(sock.recv(4096))
 					except socket.timeout:
 						if debug:
 							print 'XBMC2: SSDP: Wait for event: Timeout.'
@@ -1525,8 +1534,12 @@ class XBMC2(eg.PluginClass):
 					else:
 						if "NOTIFY * HTTP/1.1" == headers['Start-line']:
 							if headers['USN'].split(':', 2)[1] not in USNCache:
+								with open(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2', 'ssdp.log'), 'a') as f:
+									f.write(data)
 								try:
 									doc = xml.dom.minidom.parse(urllib2.urlopen(headers['LOCATION']))
+									with open(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2', 'ssdp.log'), 'a') as f:
+										f.write(urllib2.urlopen(headers['LOCATION']).read())
 								except:
 									continue
 								else:
