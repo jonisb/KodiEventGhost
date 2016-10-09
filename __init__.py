@@ -35,7 +35,7 @@ from threading import Event, Thread
 eg.RegisterPlugin(
     name = "XBMC2",
     author = "Joni Boren",
-    version = "0.6.24",
+    version = "0.6.25",
     kind = "program",
     guid = "{8C8B850C-773F-4583-AAD9-A568262B7933}",
     canMultiLoad = True,
@@ -2029,6 +2029,12 @@ class XBMC2(eg.PluginClass):
 														print 'XBMC2: SSDP address:', urlparse(doc.getElementsByTagName("presentationURL")[0].firstChild.data).netloc
 													if urlparse(doc.getElementsByTagName("presentationURL")[0].firstChild.data).netloc == self.pluginConfig['XBMC']['ip']+':'+str(self.pluginConfig['XBMC']['port']):
 														XBMCDetected = True
+											else:
+												if debug:
+													with open(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2', 'ssdp.log'), 'a') as f:
+														f.write(data)
+														f.write(urllib2.urlopen(headers['LOCATION']).read())
+													print 'XBMC2: SSDP unknown modelName:', modelName.firstChild.data
 										USNCache.append(headers['USN'].split(':', 2)[1])
 						except KeyError:
 							if debug:
@@ -2051,9 +2057,10 @@ class XBMC2(eg.PluginClass):
 						print "XBMC2: Connecting to XBMC, to be able to recive JSON-RPC notifications."
 					s.connect((self.pluginConfig['XBMC']['ip'], self.pluginConfig['JSONRPC']['port']))
 				except socket.error:
-					#import sys
-					#eg.PrintError('XBMC2: connection error: ' + str(sys.exc_info()))
-					#print "XBMC2: Not able to connect to XBMC, will use SSDP to detect when XBMC is available."
+					if debug:
+						import sys
+						eg.PrintError('XBMC2: connection error: ' + str(sys.exc_info()))
+						print "XBMC2: Not able to connect to XBMC, will use SSDP to detect when XBMC is available."
 					WaitForXBMC()
 				else:
 					print "XBMC2: Connected to XBMC (", self.pluginConfig['XBMC']['ip'], ":", self.pluginConfig['JSONRPC']['port'], "), ready to recive JSON-RPC notifications."
