@@ -33,7 +33,7 @@ from threading import Event, Thread
 eg.RegisterPlugin(
     name = "XBMC2",
     author = "Joni Boren",
-    version = "0.6.21",
+    version = "0.6.23",
     kind = "program",
     guid = "{8C8B850C-773F-4583-AAD9-A568262B7933}",
     canMultiLoad = True,
@@ -638,8 +638,14 @@ CONFIGURABLE_ACTIONS = (
 """
 class UpdateLibrary(eg.ActionBase):
     def __call__(self, libraryType="Video", updatePath=""):
+        parameterString = libraryType
+        if not updatePath == "":
+					parameterString += "," + updatePath
+        print repr(parameterString)
         try:
-            self.plugin.xbmc.send_action("UpdateLibrary("+libraryType+","+updatePath+")", ACTION_BUTTON)
+            #self.plugin.xbmc.send_action("UpdateLibrary("+libraryType+","+updatePath+")", ACTION_BUTTON)
+            #self.plugin.xbmc.send_action("UpdateLibrary(video,\\\\MYTHTV\\Media\\Multimedia\\Movies\\Anime TV\\Mikagura Gakuen Kumikyoku)", ACTION_BUTTON)
+            self.plugin.xbmc.send_action("UpdateLibrary(" + str(parameterString) + ")")
         except:
             raise self.Exceptions.ProgramNotRunning
 
@@ -650,8 +656,172 @@ class UpdateLibrary(eg.ActionBase):
         panel.sizer.Add(textControl1, 1, wx.EXPAND)
         panel.sizer.Add(textControl2, 1, wx.EXPAND)
         while panel.Affirmed():
-            panel.SetResult(textControl1.GetValue())
-            panel.SetResult(textControl2.GetValue())
+            panel.SetResult(textControl1.GetValue(), textControl2.GetValue())
+
+class BuiltInFunctions(eg.ActionBase):
+	def __call__(self, Function="Help", Parameters=""):
+		try:
+			self.plugin.xbmc.send_action(Function + "(" + str(eg.ParseString(Parameters)) + ")")
+		except:
+			raise self.Exceptions.ProgramNotRunning
+
+	def Configure(self, Function="Help", Parameters=""):
+		import os, contextlib, pickle
+		BuiltInFunctionList = {}
+		def UpdateFunctions():
+			def GetFunctions():
+				try:
+					with contextlib.closing(urllib2.urlopen(urllib2.Request('https://raw.githubusercontent.com/xbmc/xbmc/master/xbmc/interfaces/Builtins.cpp'))) as Builtinscpp:
+						Builtinslines = Builtinscpp.read().splitlines(False)
+				except (urllib2.HTTPError, urllib2.URLError):
+					eg.PrintError('XBMC2: Error: Can\'t connect to "https://raw.githubusercontent.com/xbmc/xbmc/master/xbmc/interfaces/Builtins.cpp" to update "BuiltInFunctions".')
+					raise
+				else:
+					Builtinslist = Builtinslines[Builtinslines.index("const BUILT_IN commands[] = {") + 1:Builtinslines.index("};")]
+
+					FunctionList = []
+					for Function in Builtinslist:
+						try:
+							FunctionList.append((Function.strip(' {},').split(',')[0].strip('" '), True if Function.strip(' {},').split(',')[1].strip('" ') == 'true' else False, Function.strip(' {},').split(',')[2].strip('" ')))
+						except IndexError:
+							pass
+					return FunctionList
+			def GetSyntax():
+				def XMLText(Node):
+					text = ''
+					#print "Info:", Node.nodeValue, Node.nodeName
+					try:
+						for n in Node.childNodes:
+							text += n.nodeValue if n.nodeName == '#text' else XMLText(n)
+						#print "Text:", text
+					except:
+						print "Try:", Node.nodeValue, Node.nodeName
+
+					return text
+
+				URL = 'http://kodi.wiki/view/List_of_built-in_functions'
+				request = urllib2.Request(URL)
+				try:
+					w = urllib2.urlopen(request)
+				except (urllib2.HTTPError, urllib2.URLError):
+					eg.PrintError('XBMC2: Error: Can\'t connect to "http://kodi.wiki/view/List_of_built-in_functions" to update "BuiltInFunctions".')
+					raise
+				else:
+					Page2 = w.read()
+
+					ActionDict = {}
+					for table in xml.dom.minidom.parseString(Page2).getElementsByTagName("table")[1:2]:
+						for tr in table.getElementsByTagName("tr"):
+							for code in tr.getElementsByTagName("code")[0:1]:
+								ActionDict[XMLText(code).strip().split('(')[0]] = (XMLText(code).strip(), XMLText(code.parentNode.nextSibling.nextSibling).strip())
+								#print XMLText(code).strip().split('(')[0]
+					return ActionDict
+
+			try:
+				FunctionsList = GetFunctions()
+			except (urllib2.HTTPError, urllib2.URLError):
+				BuiltInFunctionList['Help'] = {'Syntax': 'Help', 'Description': "", 'Parameters': False}
+			else:
+				try:
+					SyntaxList = GetSyntax()
+				except (urllib2.HTTPError, urllib2.URLError):
+					SyntaxList = {}
+				for Function, Parameters, Description in sorted(FunctionsList):
+					try:
+						SyntaxList[Function]
+						Syntax = SyntaxList[Function][0]
+						Description = SyntaxList[Function][1]
+					except KeyError:
+						Syntax = Function
+					BuiltInFunctionList[Function] = {'Syntax': Syntax, 'Description': Description, 'Parameters': Parameters}
+
+				if not os.path.exists(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2')):
+					os.makedirs(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2'))
+				with open(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2', 'BuiltInFunctions.dat'), 'wb') as f:
+					pickle.dump(BuiltInFunctionList, f, 1)
+					print 'XBMC2: Builtin functions updated.'
+
+		def loadfile():
+			try:
+				with open(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2', 'BuiltInFunctions.dat'), 'rb') as f:
+					return pickle.load(f)
+			except IOError:
+				print 'XBMC2: Warning: Failed to open: BuiltInFunctions.dat'
+				raise
+
+		def OnUpdate(event):
+			UpdateFunctions()
+
+		def OnFunctionChange(event):
+			if event.GetEventObject() == panel.combo_box_function:
+				if not BuiltInFunctionList[panel.combo_box_function.GetValue()]['Parameters']:
+					panel.text_ctrl_parameters.Disable()
+				else:
+					panel.text_ctrl_parameters.Enable()
+				panel.text_ctrl_syntax.SetValue(BuiltInFunctionList[panel.combo_box_function.GetValue()]['Syntax'])
+				panel.label_description.SetLabel(BuiltInFunctionList[panel.combo_box_function.GetValue()]['Description'])
+
+		def initPanel(self):
+			self.combo_box_function = wx.ComboBox(self, wx.ID_ANY, value=Function, choices=sorted(BuiltInFunctionList.keys()), style=wx.CB_READONLY)
+			self.sizer_function_staticbox = wx.StaticBox(self, wx.ID_ANY, "Function")
+			self.label_left = wx.StaticText(self, wx.ID_ANY, "(")
+			self.text_ctrl_parameters = wx.TextCtrl(self, wx.ID_ANY, Parameters)
+			self.label_right = wx.StaticText(self, wx.ID_ANY, ")")
+			self.sizer_parameter_staticbox = wx.StaticBox(self, wx.ID_ANY, "Parameter(s)")
+			self.text_ctrl_syntax = wx.TextCtrl(self, wx.ID_ANY, BuiltInFunctionList[Function]['Syntax'], style=wx.TE_READONLY | wx.BORDER_NONE)
+			self.sizer_syntax_staticbox = wx.StaticBox(self, wx.ID_ANY, "Syntax")
+			self.label_description = wx.TextCtrl(self, wx.ID_ANY, BuiltInFunctionList[Function]['Description'], style=wx.TE_MULTILINE | wx.TE_READONLY | wx.BORDER_NONE | wx.TE_RICH)
+			self.sizer_description_staticbox = wx.StaticBox(self, wx.ID_ANY, "Description")
+			self.button_update = wx.Button(self, wx.ID_ANY, "Update")
+			if not BuiltInFunctionList[Function]['Parameters']:
+				self.text_ctrl_parameters.Disable()
+
+			setPanelProperties(self)
+			doPanelLayout(self)
+
+			self.Bind(wx.EVT_COMBOBOX, OnFunctionChange, self.combo_box_function)
+			self.button_update.Bind(wx.EVT_BUTTON, OnUpdate)
+
+		def setPanelProperties(self):
+			self.label_left.SetFont(wx.Font(13, wx.DEFAULT, wx.NORMAL, wx.NORMAL, 0, ""))
+			self.label_right.SetFont(wx.Font(13, wx.DEFAULT, wx.NORMAL, wx.NORMAL, 0, ""))
+			self.button_update.SetToolTipString("Update \"BuiltInFunctions\" form Kodis website.")
+
+		def doPanelLayout(self):
+			sizer_main = wx.BoxSizer(wx.VERTICAL)
+			self.sizer_description_staticbox.Lower()
+			sizer_description = wx.StaticBoxSizer(self.sizer_description_staticbox, wx.HORIZONTAL)
+			self.sizer_syntax_staticbox.Lower()
+			sizer_syntax = wx.StaticBoxSizer(self.sizer_syntax_staticbox, wx.HORIZONTAL)
+			sizer_functionparameter = wx.BoxSizer(wx.HORIZONTAL)
+			self.sizer_parameter_staticbox.Lower()
+			sizer_parameter = wx.StaticBoxSizer(self.sizer_parameter_staticbox, wx.HORIZONTAL)
+			self.sizer_function_staticbox.Lower()
+			sizer_function = wx.StaticBoxSizer(self.sizer_function_staticbox, wx.HORIZONTAL)
+			sizer_function.Add(self.combo_box_function, 0, 0, 0)
+			sizer_functionparameter.Add(sizer_function, 0, 0, 0)
+			sizer_parameter.Add(self.label_left, 0, 0, 0)
+			sizer_parameter.Add(self.text_ctrl_parameters, 1, wx.EXPAND, 0)
+			sizer_parameter.Add(self.label_right, 0, 0, 0)
+			sizer_functionparameter.Add(sizer_parameter, 1, 0, 0)
+			sizer_main.Add(sizer_functionparameter, 0, wx.EXPAND, 0)
+			sizer_syntax.Add(self.text_ctrl_syntax, 1, 0, 0)
+			sizer_main.Add(sizer_syntax, 0, wx.EXPAND, 0)
+			sizer_description.Add(self.label_description, 1, wx.EXPAND, 0)
+			sizer_main.Add(sizer_description, 1, wx.EXPAND, 0)
+			sizer_main.Add(self.button_update, 0, wx.ALIGN_RIGHT, 0)
+			self.sizer.Add(sizer_main, 1, wx.EXPAND, 0)
+
+		panel = eg.ConfigPanel()
+		try:
+			BuiltInFunctionList = loadfile()
+		except IOError:
+			UpdateFunctions()
+
+		initPanel(panel)
+
+		while panel.Affirmed():
+			panel.SetResult(str(panel.combo_box_function.GetValue()), str(panel.text_ctrl_parameters.GetValue()))
 
 class ButtonPrototype(eg.ActionClass):
     def __call__(self):
@@ -1323,13 +1493,14 @@ class XBMC2(eg.PluginClass):
         else:
           ActionsGroup.AddActionsFromList(MANUALLYUPDATED_ACTIONS, ActionPrototype)
 
-#        ConfigurableGroup = ActionsGroup.AddGroup("Configurable", "Actions that have configurable settings")
-#        ConfigurableGroup.AddAction(UpdateLibrary)
+        ConfigurableGroup = ActionsGroup.AddGroup("Configurable", "Actions that have configurable settings")
+        ConfigurableGroup.AddAction(UpdateLibrary)
         self.AddActionsFromList(WINDOWS, ActionPrototype)
 
         TestGroup = self.AddGroup("Experimental", "Experimental")
         TestGroup.AddAction(JSONRPC)
         TestGroup.AddAction(HTTPAPI)
+        TestGroup.AddAction(BuiltInFunctions)
         TestGroup.AddAction(GetCurrentlyPlayingFilename)
         TestGroup.AddAction(SendNotification)
 
@@ -1870,6 +2041,9 @@ class XBMC2(eg.PluginClass):
 					print "XBMC2: Connected to XBMC (", self.pluginConfig['XBMC']['ip'], ":", self.pluginConfig['JSONRPC']['port'], "), ready to recive JSON-RPC notifications."
 					self.TriggerEvent('System.OnStart')
 					message = ''
+					if debug:
+						print 'XBMC2: JSON-RPC sent: "GetConfiguration".'
+						s.send(json.dumps({'jsonrpc':'2.0', 'method': 'JSONRPC.GetConfiguration', 'id':1}))
 					while not stopJSONRPCNotifications.isSet():
 						try:
 							if debug:
@@ -1917,6 +2091,10 @@ class XBMC2(eg.PluginClass):
 										eg.PrintError('XBMC2: Error: JSON-RPC event, "method" missing ' + repr(message))
 										self.PrintError('JSON unrecogniced event type: \n' + "Raw event: %s" % repr(message))
 									else:
+										if 'notifications' in message['result']:
+											if debug:
+												print 'XBMC2: JSON-RPC responce: "notifications":', message['result']['notifications']
+											continue
 										if message['result'] == 'pong':
 											if debug:
 												print 'XBMC2: JSON-RPC responce: "pong".'
