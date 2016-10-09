@@ -33,7 +33,7 @@ from threading import Event, Thread
 eg.RegisterPlugin(
     name = "XBMC2",
     author = "Joni Boren",
-    version = "0.6.16",
+    version = "0.6.17",
     kind = "program",
     guid = "{8C8B850C-773F-4583-AAD9-A568262B7933}",
     canMultiLoad = True,
@@ -1219,7 +1219,7 @@ def ssdpSearch():
 		#	f.write(urllib2.urlopen(result).read())
 		doc = xml.dom.minidom.parse(urllib2.urlopen(result))
 		for modelName in doc.getElementsByTagName("modelName"):
-			if modelName.firstChild.data == 'XBMC Media Center':
+			if modelName.firstChild.data in ('XBMC Media Center', 'Kodi'):
 				XBMCResultList[urlparse(doc.getElementsByTagName("presentationURL")[0].firstChild.data).netloc] = doc.getElementsByTagName("friendlyName")[0].firstChild.data
 	return XBMCResultList
 
@@ -1756,7 +1756,7 @@ class XBMC2(eg.PluginClass):
 										continue
 									else:
 										for modelName in doc.getElementsByTagName("modelName"):
-											if modelName.firstChild.data == 'XBMC Media Center':
+											if modelName.firstChild.data in ('XBMC Media Center', 'Kodi'):
 												if debug:
 													with open(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2', 'ssdp.log'), 'a') as f:
 														f.write(data)
