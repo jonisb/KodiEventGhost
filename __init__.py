@@ -1534,17 +1534,16 @@ class XBMC2(eg.PluginClass):
 					else:
 						if "NOTIFY * HTTP/1.1" == headers['Start-line']:
 							if headers['USN'].split(':', 2)[1] not in USNCache:
-								with open(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2', 'ssdp.log'), 'a') as f:
-									f.write(data)
 								try:
 									doc = xml.dom.minidom.parse(urllib2.urlopen(headers['LOCATION']))
-									with open(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2', 'ssdp.log'), 'a') as f:
-										f.write(urllib2.urlopen(headers['LOCATION']).read())
 								except:
 									continue
 								else:
 									for modelName in doc.getElementsByTagName("modelName"):
 										if modelName.firstChild.data == 'XBMC Media Center':
+											with open(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2', 'ssdp.log'), 'a') as f:
+												f.write(data)
+												f.write(urllib2.urlopen(headers['LOCATION']).read())
 											if debug:
 												print 'XBMC2: SSDP modelName:', modelName.firstChild.data
 											#from urlparse import urlparse
