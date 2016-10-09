@@ -33,7 +33,7 @@ from threading import Event, Thread
 eg.RegisterPlugin(
     name = "XBMC2",
     author = "Joni Boren",
-    version = "0.6.10",
+    version = "0.6.11",
     kind = "program",
     guid = "{8C8B850C-773F-4583-AAD9-A568262B7933}",
     canMultiLoad = True,
@@ -1139,12 +1139,12 @@ def ssdpSearch():
 					if headers['USN'] not in USNCache:
 						USNCache.append(headers['USN'])
 						ssdpResultList.append(headers['LOCATION'])
-						with open(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2', 'ssdp.log'), 'a') as f:
-							f.write(data)
+						#with open(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2', 'ssdp.log'), 'a') as f:
+						#	f.write(data)
 
 	for result in ssdpResultList:
-		with open(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2', 'ssdp.log'), 'a') as f:
-			f.write(urllib2.urlopen(result).read())
+		#with open(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2', 'ssdp.log'), 'a') as f:
+		#	f.write(urllib2.urlopen(result).read())
 		doc = xml.dom.minidom.parse(urllib2.urlopen(result))
 		for modelName in doc.getElementsByTagName("modelName"):
 			if modelName.firstChild.data == 'XBMC Media Center':
@@ -1549,7 +1549,16 @@ class XBMC2(eg.PluginClass):
 											#from urlparse import urlparse
 											if self.pluginConfig['XBMC']['ip'] == '127.0.0.1':
 												for ip in interface_addresses():
-													if urlparse(doc.getElementsByTagName("presentationURL")[0].firstChild.data).netloc == ip+':'+str(self.pluginConfig['XBMC']['port']):
+													#if urlparse(doc.getElementsByTagName("presentationURL")[0].firstChild.data).netloc == ip+':'+str(self.pluginConfig['XBMC']['port']):
+													if urlparse(doc.getElementsByTagName("presentationURL")[0].firstChild.data).netloc.split(":")[0] == ip:
+														try:
+															if urlparse(doc.getElementsByTagName("presentationURL")[0].firstChild.data).netloc.split(":")[1] == str(self.pluginConfig['XBMC']['port']):
+																XBMCDetected = True
+																break
+															else:
+																continue
+														except:
+															pass
 														XBMCDetected = True
 														break
 											else:
