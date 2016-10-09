@@ -33,7 +33,7 @@ from threading import Event, Thread
 eg.RegisterPlugin(
     name = "XBMC2",
     author = "Joni Boren",
-    version = "0.6.19",
+    version = "0.6.20",
     kind = "program",
     guid = "{8C8B850C-773F-4583-AAD9-A568262B7933}",
     canMultiLoad = True,
@@ -742,7 +742,7 @@ class XBMC_JSON_RPC:
 		#self.base64string = base64.encodestring('%s:%s' % (username, password))[:-1]
 		print 'JSON-RPC connected'
 
-	def send(self, method, params = None):
+	def send(self, method, params = None, wait=True):
 		self.jsoninit['method'] = method
 		if params:
 			self.jsoninit['params'] = params
@@ -753,7 +753,8 @@ class XBMC_JSON_RPC:
 		request.add_header("Authorization", "Basic %s" % self.base64string)
 		request.add_header('Content-Type', 'application/json')
 		try:
-			responce = urllib2.urlopen(request).read()
+			#responce = urllib2.urlopen(request, timeout=5).read()
+			responce = urllib2.urlopen(request, timeout=(60 if wait else 1)).read()
 		except urllib2.HTTPError as e:
 			#print 'HTTPError', e.args
 			#if hasattr(e, 'reason'): # <--
@@ -766,7 +767,14 @@ class XBMC_JSON_RPC:
 			raise
 		except urllib2.URLError as e:
 			#print 'URLError', e.reason, e.args
-			raise
+			if type(e.reason) == socket.timeout:
+				return {'noresult': None}
+			else:
+				#print 'URLError', e.reason, e.args
+				raise
+      #URLError: <urlopen error timed out>
+      #URLError timed out (timeout('timed out',),)
+      #URLError <class 'socket.timeout'> (timeout('timed out',),)
 		except:
 			#import sys
 			#eg.PrintError('JSON-RPC connect error: ' + str(sys.exc_info()))
@@ -986,13 +994,15 @@ class HTTPAPI(eg.ActionClass):
 class JSONRPC(eg.ActionClass):
 	description = "Run any <a href='http://wiki.xbmc.org/index.php?title=JSON_RPC'>XBMC JSON-RPC</a> method"
 
-	def __call__(self, method="JSONRPC.Introspect", param="", log=True):
+	def __call__(self, method="JSONRPC.Introspect", param="", log=True, wait=True):
 		if param:
-			responce = self.plugin.JSON_RPC.send(method, ast.literal_eval(ParseString2(param)))
+			responce = self.plugin.JSON_RPC.send(method, ast.literal_eval(ParseString2(param)), wait=wait)
 		else:
-			responce = self.plugin.JSON_RPC.send(method)
+			responce = self.plugin.JSON_RPC.send(method, wait=wait)
 		if responce != None:
-			if responce.has_key('result'):
+			if responce.has_key('noresult'):
+				return
+			elif responce.has_key('result'):
 				if log:
 					print 'Result:\n', json.dumps(responce['result'], sort_keys=True, indent=2)
 				return responce['result']
@@ -1005,7 +1015,7 @@ class JSONRPC(eg.ActionClass):
 		else:
 			raise self.Exceptions.ProgramNotRunning
 
-	def Configure(self, method="JSONRPC.Introspect", param="", log=True):
+	def Configure(self, method="JSONRPC.Introspect", param="", log=True, wait=True):
 		import os
 		import pickle
 		class record:
@@ -1133,12 +1143,17 @@ class JSONRPC(eg.ActionClass):
 		description.Wrap(480)
 		Bottom = wx.BoxSizer(wx.HORIZONTAL)
 		CheckBox = wx.CheckBox(panel, -1, 'Show result in the log')
+		CheckBox2 = wx.CheckBox(panel, -1, "Wait for result.(Timeout 60s)")
 		CheckBox.SetValue(log)
+		CheckBox2.SetValue(wait)
+		Bottom.Add(CheckBox2)
 		Bottom.Add(CheckBox)
 		UpdateButton = wx.Button(panel, -1, 'Update')
 		UpdateButton.Bind(wx.EVT_BUTTON, OnUpdate)
-		Bottom.Add(UpdateButton,0,wx.LEFT,280)
-		panel.sizer.Add(Bottom)
+		Bottom.Add((0, 0), 1, wx.EXPAND)
+		#Bottom.Add(UpdateButton,0,wx.LEFT,280)
+		Bottom.Add(UpdateButton, flag= wx.ALIGN_RIGHT)
+		panel.sizer.Add(Bottom, 1, flag=wx.EXPAND)
 		panel.Bind(wx.EVT_COMBOBOX, OnMethodChange)
 		while panel.Affirmed():
 			try:
@@ -1158,7 +1173,7 @@ class JSONRPC(eg.ActionClass):
 					except:
 						textControl2.SetValue('')
 
-			panel.SetResult(HBoxControl.GetValue()+'.'+comboBoxControl.GetValue(), textControl2.GetValue(), CheckBox.GetValue())
+			panel.SetResult(HBoxControl.GetValue()+'.'+comboBoxControl.GetValue(), textControl2.GetValue(), CheckBox.GetValue(), CheckBox2.GetValue())
 
 #class StopRepeating(eg.ActionClass):
 #    name = "Stop Repeating"
@@ -1713,8 +1728,7 @@ class XBMC2(eg.PluginClass):
 
     def JSONRPCNotifications(self, stopJSONRPCNotifications):
 			import os
-			#debug = False
-			debug = self.pluginConfig['logRawEvents']
+			debug = False
 			#import socket
 			#socket.setdefaulttimeout(3)
 			def Headers(data):
