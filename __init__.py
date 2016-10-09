@@ -33,7 +33,7 @@ from threading import Event, Thread
 eg.RegisterPlugin(
     name = "XBMC2",
     author = "Joni Boren",
-    version = "0.6.14",
+    version = "0.6.15",
     kind = "program",
     guid = "{8C8B850C-773F-4583-AAD9-A568262B7933}",
     canMultiLoad = True,
@@ -1630,41 +1630,48 @@ class XBMC2(eg.PluginClass):
 							print 'XBMC2: SSDP: Wait for event: Timeout.'
 						pass
 					else:
-						if "NOTIFY * HTTP/1.1" == headers['Start-line']:
-							if headers['USN'].split(':', 2)[1] not in USNCache:
-								try:
-									doc = xml.dom.minidom.parse(urllib2.urlopen(headers['LOCATION']))
-								except:
-									continue
-								else:
-									for modelName in doc.getElementsByTagName("modelName"):
-										if modelName.firstChild.data == 'XBMC Media Center':
-											if debug:
-												with open(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2', 'ssdp.log'), 'a') as f:
-													f.write(data)
-													f.write(urllib2.urlopen(headers['LOCATION']).read())
-												print 'XBMC2: SSDP modelName:', modelName.firstChild.data
-											#from urlparse import urlparse
-											if self.pluginConfig['XBMC']['ip'] == '127.0.0.1':
-												for ip in interface_addresses():
-													#if urlparse(doc.getElementsByTagName("presentationURL")[0].firstChild.data).netloc == ip+':'+str(self.pluginConfig['XBMC']['port']):
-													if urlparse(doc.getElementsByTagName("presentationURL")[0].firstChild.data).netloc.split(":")[0] == ip:
-														try:
-															if urlparse(doc.getElementsByTagName("presentationURL")[0].firstChild.data).netloc.split(":")[1] == str(self.pluginConfig['XBMC']['port']):
-																XBMCDetected = True
-																break
-															else:
-																continue
-														except:
-															pass
-														XBMCDetected = True
-														break
-											else:
+						try:
+							if "NOTIFY * HTTP/1.1" == headers['Start-line']:
+								if headers['USN'].split(':', 2)[1] not in USNCache:
+									try:
+										doc = xml.dom.minidom.parse(urllib2.urlopen(headers['LOCATION']))
+									except:
+										continue
+									else:
+										for modelName in doc.getElementsByTagName("modelName"):
+											if modelName.firstChild.data == 'XBMC Media Center':
 												if debug:
-													print 'XBMC2: SSDP address:', urlparse(doc.getElementsByTagName("presentationURL")[0].firstChild.data).netloc
-												if urlparse(doc.getElementsByTagName("presentationURL")[0].firstChild.data).netloc == self.pluginConfig['XBMC']['ip']+':'+str(self.pluginConfig['XBMC']['port']):
-													XBMCDetected = True
-									USNCache.append(headers['USN'].split(':', 2)[1])
+													with open(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2', 'ssdp.log'), 'a') as f:
+														f.write(data)
+														f.write(urllib2.urlopen(headers['LOCATION']).read())
+													print 'XBMC2: SSDP modelName:', modelName.firstChild.data
+												#from urlparse import urlparse
+												if self.pluginConfig['XBMC']['ip'] == '127.0.0.1':
+													for ip in interface_addresses():
+														#if urlparse(doc.getElementsByTagName("presentationURL")[0].firstChild.data).netloc == ip+':'+str(self.pluginConfig['XBMC']['port']):
+														if urlparse(doc.getElementsByTagName("presentationURL")[0].firstChild.data).netloc.split(":")[0] == ip:
+															try:
+																if urlparse(doc.getElementsByTagName("presentationURL")[0].firstChild.data).netloc.split(":")[1] == str(self.pluginConfig['XBMC']['port']):
+																	XBMCDetected = True
+																	break
+																else:
+																	continue
+															except:
+																pass
+															XBMCDetected = True
+															break
+												else:
+													if debug:
+														print 'XBMC2: SSDP address:', urlparse(doc.getElementsByTagName("presentationURL")[0].firstChild.data).netloc
+													if urlparse(doc.getElementsByTagName("presentationURL")[0].firstChild.data).netloc == self.pluginConfig['XBMC']['ip']+':'+str(self.pluginConfig['XBMC']['port']):
+														XBMCDetected = True
+										USNCache.append(headers['USN'].split(':', 2)[1])
+						except KeyError:
+							if debug:
+								print 'XBMC2: SSDP: "Start-line" test failed: Content of headers:', headers
+								import sys
+								eg.PrintError('JSON-RPC connect error: ' + str(sys.exc_info()))
+
 				sock.close()
 				if debug:
 					print 'XBMC2: SSDP is off'
