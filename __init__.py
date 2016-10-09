@@ -33,7 +33,7 @@ from threading import Event, Thread
 eg.RegisterPlugin(
     name = "XBMC2",
     author = "Joni Boren",
-    version = "0.6.18",
+    version = "0.6.19",
     kind = "program",
     guid = "{8C8B850C-773F-4583-AAD9-A568262B7933}",
     canMultiLoad = True,
@@ -58,9 +58,17 @@ eg.RegisterPlugin(
     ),
 )
 
+"""
+'http://www.xbmc.org/'
+'http://wiki.xbmc.org/index.php?title=Web_Server_HTTP_API'
+http://xbmc.org/wiki/?title=Window_IDs
+http://xbmc.org/wiki/?title=Action_IDs#General_actions_available_throughout_most_of_XBMC
+'http://wiki.xbmc.org/?title=Action_IDs'
+'https://raw.githubusercontent.com/xbmc/xbmc/master/xbmc/input/ButtonTranslator.cpp'
+"""
 # from threading import Event, Thread
 
-# Windows availible in XBMC.  For a list of all actions see: http://xbmc.org/wiki/?title=Window_IDs
+# Windows availible in XBMC.  For a list of all actions see: http://xbmc.org/wiki/?title=Window_IDs http://kodi.wiki/view/Window_IDs
 """
 """
 
@@ -135,7 +143,7 @@ WINDOWS = (
     ("PlayerControls", "Player Controls", "WINDOW_DIALOG_PLAYER_CONTROLS", "Activatewindow(Playercontrols)"),
 )),
 )
-# actions handled by XBMC.  For a list of all actions see: http://xbmc.org/wiki/?title=Action_IDs#General_actions_available_throughout_most_of_XBMC
+# actions handled by XBMC.  For a list of all actions see: http://xbmc.org/wiki/?title=Action_IDs#General_actions_available_throughout_most_of_XBMC http://kodi.wiki/view/Action_IDs#General_actions_available_throughout_most_of_XBMC
 
 GENERAL_ACTIONS = (
 (eg.ActionGroup, "General", "General", None, (
@@ -174,7 +182,7 @@ GENERAL_ACTIONS = (
 )),
 )
 
-# actions handled by XBMC.  For a list of all actions see: http://xbmc.org/wiki/?title=Action_IDs#General_actions_available_while_video_or_music_are_playing
+# actions handled by XBMC.  For a list of all actions see: http://xbmc.org/wiki/?title=Action_IDs#General_actions_available_while_video_or_music_are_playing http://kodi.wiki/view/Action_IDs#General_actions_available_while_video_or_music_are_playing
 
 MEDIA_PLAYING_ACTIONS = (
 (eg.ActionGroup, "MediaPlaying", "Media playing", None, (
@@ -206,7 +214,7 @@ MEDIA_PLAYING_ACTIONS = (
 )),
 )
 
-# Actions handled by XBMC.  For a list of all actions see: http://xbmc.org/wiki/?title=Action_IDs#Actions_available_only_in_Music_and_Videos_windows_only
+# Actions handled by XBMC.  For a list of all actions see: http://xbmc.org/wiki/?title=Action_IDs#Actions_available_only_in_Music_and_Videos_windows_only http://kodi.wiki/view/Action_IDs#Actions_available_only_in_Music_and_Videos_windows_only
 
 PLAYLIST_ACTIONS = (
 (eg.ActionGroup, "Playlist", "Playlist", None, (
@@ -217,7 +225,7 @@ PLAYLIST_ACTIONS = (
 )),
 )
 
-# Actions handled by XBMC.  For a list of all actions see: http://xbmc.org/wiki/?title=Action_IDs#Actions_available_only_in_Full_Screen_Video
+# Actions handled by XBMC.  For a list of all actions see: http://xbmc.org/wiki/?title=Action_IDs#Actions_available_only_in_Full_Screen_Video http://kodi.wiki/view/Action_IDs#Actions_available_only_in_Full_Screen_Video
 
 FULLSCREEN_VIDEO_ACTIONS = (
 (eg.ActionGroup, "FullscreenVideo", "FullScreen Video", None, (
@@ -245,7 +253,7 @@ FULLSCREEN_VIDEO_ACTIONS = (
 )),
 )
 
-# Actions handled by XBMC.  For a list of all actions see: http://xbmc.org/wiki/?title=Action_IDs#Actions_available_during_a_picture_slideshow
+# Actions handled by XBMC.  For a list of all actions see: http://xbmc.org/wiki/?title=Action_IDs#Actions_available_during_a_picture_slideshow http://kodi.wiki/view/Action_IDs#Actions_available_during_a_picture_slideshow
 
 SLIDESHOW_ACTIONS = (
 (eg.ActionGroup, "PictureSlideshow", "Picture slideshow", None, (
@@ -267,7 +275,7 @@ SLIDESHOW_ACTIONS = (
     ("Rotate", "Rotate", "Rotate a picture in My Pictures", "rotate"),
 )),
 )
-# Actions handled by XBMC.  For a list of all actions see: http://xbmc.org/wiki/?title=Action_IDs#Actions_available_in_screen_calibration
+# Actions handled by XBMC.  For a list of all actions see: http://xbmc.org/wiki/?title=Action_IDs#Actions_available_in_screen_calibration http://kodi.wiki/view/Action_IDs#Actions_available_in_screen_calibration
 
 CALIBRATION_ACTIONS = (
 (eg.ActionGroup, "ScreenCalibration", "Screen calibration", None, (
@@ -278,7 +286,7 @@ CALIBRATION_ACTIONS = (
 )),
 )
 
-# Actions handled by XBMC.  For a list of all actions see: http://xbmc.org/wiki/?title=Action_IDs#Actions_available_in_the_File_Manager
+# Actions handled by XBMC.  For a list of all actions see: http://xbmc.org/wiki/?title=Action_IDs#Actions_available_in_the_File_Manager http://kodi.wiki/view/Action_IDs#Actions_available_in_the_File_Manager
 
 FILEMANAGER_ACTIONS = (
 (eg.ActionGroup, "FileManager", "File Manager", None, (
@@ -288,7 +296,7 @@ FILEMANAGER_ACTIONS = (
     ("Rename", "Rename", "Used in My Files to rename a file.", "rename"),
 )),
 )
-# Actions handled by XBMC.  For a list of all actions see: http://xbmc.org/wiki/?title=Action_IDs#Actions_available_in_the_on-screen_keyboard
+# Actions handled by XBMC.  For a list of all actions see: http://xbmc.org/wiki/?title=Action_IDs#Actions_available_in_the_on-screen_keyboard http://kodi.wiki/view/Action_IDs#Actions_available_in_the_on-screen_keyboard
 
 ON_SCREEN_KEYBOARD_ACTIONS = (
 (eg.ActionGroup, "On-screenKeyboard", "On-screen keyboard", None, (
@@ -300,7 +308,7 @@ ON_SCREEN_KEYBOARD_ACTIONS = (
 )),
 )
 
-# Actions handled by XBMC.  For a list of all actions see: http://xbmc.org/wiki/?title=Action_IDs#Actions_available_during_a_music_visualisation
+# Actions handled by XBMC.  For a list of all actions see: http://xbmc.org/wiki/?title=Action_IDs#Actions_available_during_a_music_visualisation http://kodi.wiki/view/Action_IDs#Actions_available_during_a_music_visualisation
 
 VISUALISATION_ACTIONS = (
 (eg.ActionGroup, "MusicVisualisation", "Music visualisation", None, (
@@ -423,7 +431,7 @@ UNCATEGORIZED_ACTIONS = (
 )),
 )
 
-# Remote buttons handled by XBMC.  For a list of all buttons see: http://wiki.xbmc.org/?title=Keymap.xml#Remote_Section
+# Remote buttons handled by XBMC.  For a list of all buttons see: http://wiki.xbmc.org/?title=Keymap.xml#Remote_Section http://kodi.wiki/view/Keymap.xml#Remotes
 
 REMOTE_BUTTONS = (
 (eg.ActionGroup, "Remote", "Remote", None, (
@@ -485,7 +493,7 @@ REMOTE_BUTTONS = (
     ("Remotelanguage", "Language", "", "language"),
 )),
 )
-# Remote buttons handled by XBMC.  For a list of all buttons see: http://wiki.xbmc.org/?title=Keymap.xml#Gamepad_Section
+# Remote buttons handled by XBMC.  For a list of all buttons see: http://wiki.xbmc.org/?title=Keymap.xml#Gamepad_Section http://kodi.wiki/view/Keymap.xml#Gamepads
 
 GAMEPAD_BUTTONS = (
 (eg.ActionGroup, "Gamepad", "Gamepad", None, (
@@ -520,7 +528,7 @@ GAMEPAD_BUTTONS = (
 )),
 )
 
-# Remote buttons handled by XBMC.  For a list of all buttons see: http://wiki.xbmc.org/?title=Keymap.xml#Custom_Joystick_Configuration
+# Remote buttons handled by XBMC.  For a list of all buttons see: http://wiki.xbmc.org/?title=Keymap.xml#Custom_Joystick_Configuration http://kodi.wiki/view/Keymap.xml#Custom_Joystick_Configuration
 
 APPLEREMOTE_BUTTONS = (
 (eg.ActionGroup, "AppleRemote", "AppleRemote", None, (
@@ -575,7 +583,7 @@ APPLEREMOTE_BUTTONS = (
 )),
 )
 
-# Keyboard keys handled by XBMC.  For a list of all keys see: http://wiki.xbmc.org/index.php?title=List_of_XBMC_keynames
+# Keyboard keys handled by XBMC.  For a list of all keys see: http://wiki.xbmc.org/index.php?title=List_of_XBMC_keynames http://kodi.wiki/view/List_of_XBMC_keynames
 
 KEYBOARD_KEYS = (
 (eg.ActionGroup, "Keyboard", "Keyboard", None, (
@@ -1348,36 +1356,48 @@ class XBMC2(eg.PluginClass):
 					def GetActionDescriptions():
 						def XMLText(Node):
 							text = ''
-							for n in Node.childNodes:
-								text += n.nodeValue if n.nodeName == '#text' else XMLText(n)
+							#print "Info:", Node.nodeValue, Node.nodeName
+							try:
+								for n in Node.childNodes:
+									text += n.nodeValue if n.nodeName == '#text' else XMLText(n)
+								#print "Text:", text
+							except:
+								print "Try:", Node.nodeValue, Node.nodeName
+
 							return text
 
 						URL = 'http://wiki.xbmc.org/?title=Action_IDs'
+						#URL = 'http://kodi.wiki/view/Action_IDs'
 						request = urllib2.Request(URL)
 						w = urllib2.urlopen(request)
 
 						Page2 = w.read()
 
 						ActionDict = {}
-						for code in xml.dom.minidom.parseString(Page2).getElementsByTagName("code"):
-							#print repr(code.childNodes.item(0).nodeValue)
-							if '2-9' in XMLText(code).strip():
-								for i in range(2, 10):
-									#print i
-									#print repr((XMLText(code).strip()[:-5] + str(i)).lower()),
-									#print repr(XMLText(code.parentNode.nextSibling.nextSibling).strip())
-									ActionDict[(XMLText(code).strip()[:-5] + str(i)).lower()] = ((XMLText(code).strip()[:-5] + str(i)), XMLText(code.parentNode.nextSibling.nextSibling).strip())
-							elif '0-9' in XMLText(code).strip():
-								for i in range(10):
-									#print i
-									#print repr((XMLText(code).strip()[:-5] + str(i)).lower()),
-									#print repr(XMLText(code.parentNode.nextSibling.nextSibling).strip())
-									ActionDict[(XMLText(code).strip()[:-5] + str(i)).lower()] = ((XMLText(code).strip()[:-5] + str(i)), XMLText(code.parentNode.nextSibling.nextSibling).strip())
-							else:
-								if XMLText(code).strip().lower() not in ActionDict:
-									#print repr(XMLText(code).strip().lower()),
-									#print repr(XMLText(code.parentNode.nextSibling.nextSibling).strip())
-									ActionDict[XMLText(code).strip().lower()] = (XMLText(code).strip(), XMLText(code.parentNode.nextSibling.nextSibling).strip())
+						for tr in xml.dom.minidom.parseString(Page2).getElementsByTagName("tr"):
+							#for code in xml.dom.minidom.parseString(Page2).getElementsByTagName("code"):
+							for code in tr.getElementsByTagName("code")[0:1]:
+								#code = tr.getElementsByTagName("code")[0]
+								#print "code:", code.nodeValue, code.nodeName
+								#print repr(code.childNodes.item(0).nodeValue)
+								if '2-9' in XMLText(code).strip():
+									for i in range(2, 10):
+										#print i
+										#print repr((XMLText(code).strip()[:-5] + str(i)).lower()),
+										#print repr(XMLText(code.parentNode.nextSibling.nextSibling).strip())
+										ActionDict[(XMLText(code).strip()[:-5] + str(i)).lower()] = ((XMLText(code).strip()[:-5] + str(i)), XMLText(code.parentNode.nextSibling.nextSibling).strip())
+								elif '0-9' in XMLText(code).strip():
+									for i in range(10):
+										#print i
+										#print repr((XMLText(code).strip()[:-5] + str(i)).lower()),
+										#print repr(XMLText(code.parentNode.nextSibling.nextSibling).strip())
+										ActionDict[(XMLText(code).strip()[:-5] + str(i)).lower()] = ((XMLText(code).strip()[:-5] + str(i)), XMLText(code.parentNode.nextSibling.nextSibling).strip())
+								else:
+									if XMLText(code).strip().lower() not in ActionDict:
+										#print repr(XMLText(code).strip().lower()),
+										#print repr(XMLText(code.parentNode.nextSibling.nextSibling).strip())
+										ActionDict[XMLText(code).strip().lower()] = (XMLText(code).strip(), XMLText(code.parentNode.nextSibling.nextSibling).strip())
+										#print "End"
 						return ActionDict
 
 					ActionList = GetActions()
@@ -1411,6 +1431,7 @@ class XBMC2(eg.PluginClass):
 					#with open(os.path.join('EventGhost', 'plugins', 'XBMC2', 'actions.dat'), 'wb') as f:
 						import pickle
 						pickle.dump(EGActionList, f, 1)
+					print 'XBMC2: "Manually added" actions updated, restart EventGhost to use.'
 				def ConnectionTest(event):
 					print "XBMC2: Starting connection test, trying to connect to XBMC using", panel.combo_box_IP.GetValue()
 
@@ -1692,7 +1713,8 @@ class XBMC2(eg.PluginClass):
 
     def JSONRPCNotifications(self, stopJSONRPCNotifications):
 			import os
-			debug = False
+			#debug = False
+			debug = self.pluginConfig['logRawEvents']
 			#import socket
 			#socket.setdefaulttimeout(3)
 			def Headers(data):
