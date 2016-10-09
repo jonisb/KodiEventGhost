@@ -33,7 +33,7 @@ from threading import Event, Thread
 eg.RegisterPlugin(
     name = "XBMC2",
     author = "Joni Boren",
-    version = "0.6.15",
+    version = "0.6.16",
     kind = "program",
     guid = "{8C8B850C-773F-4583-AAD9-A568262B7933}",
     canMultiLoad = True,
@@ -1280,6 +1280,17 @@ class XBMC2(eg.PluginClass):
         ActionsGroup.AddActionsFromList(VISUALISATION_ACTIONS, ActionPrototype)
         ActionsGroup.AddActionsFromList(SHUTDOWN_ACTIONS, ActionPrototype)
         ActionsGroup.AddActionsFromList(UNCATEGORIZED_ACTIONS, ActionPrototype)
+        try:
+          import os
+          with open(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2', 'actions.dat'), 'rb') as f:
+            import pickle
+            MANUALLYUPDATED_ACTIONS = [[eg.ActionGroup, "ManuallyUpdated", "Manually Updated", None, pickle.load(f)]]
+        except IOError:
+          #eg.PrintError('Failed to open: httpapi.dat')
+          pass
+        else:
+          ActionsGroup.AddActionsFromList(MANUALLYUPDATED_ACTIONS, ActionPrototype)
+
 #        ConfigurableGroup = ActionsGroup.AddGroup("Configurable", "Actions that have configurable settings")
 #        ConfigurableGroup.AddAction(UpdateLibrary)
         self.AddActionsFromList(WINDOWS, ActionPrototype)
@@ -1298,6 +1309,100 @@ class XBMC2(eg.PluginClass):
         self.stopBroadcastEvents = Event()
 
     def Configure(self, pluginConfig={}, *args):
+				def UpdateActions(event):
+					def GetActions():
+						URL = 'https://raw.githubusercontent.com/xbmc/xbmc/master/xbmc/input/ButtonTranslator.cpp'
+						request = urllib2.Request(URL)
+						#try:
+						w = urllib2.urlopen(request)
+						#except urllib2.HTTPError:
+						#	#Page = Cache[URL]['Page']
+						#	pass
+						#else:
+						Page1 = w.read().splitlines(False)
+						#print repr(Page1)
+
+						#print Page1.index("static const ActionMapping actions[] =")
+						#print Page1[Page1.index("static const ActionMapping actions[] ="):].index("};")
+						Page1a = Page1[Page1.index("static const ActionMapping actions[] =") + 2:Page1.index("};")]
+						#print Page1a[0]
+						#print len(Page1a)
+
+						ActionList = []
+						for i in Page1a:
+							try:
+								#print repr(i.split('"')[1])
+								ActionList.append(i.split('"')[1])
+							except IndexError:
+								pass
+						return ActionList
+
+					def GetActionDescriptions():
+						def XMLText(Node):
+							text = ''
+							for n in Node.childNodes:
+								text += n.nodeValue if n.nodeName == '#text' else XMLText(n)
+							return text
+
+						URL = 'http://wiki.xbmc.org/?title=Action_IDs'
+						request = urllib2.Request(URL)
+						w = urllib2.urlopen(request)
+
+						Page2 = w.read()
+
+						ActionDict = {}
+						for code in xml.dom.minidom.parseString(Page2).getElementsByTagName("code"):
+							#print repr(code.childNodes.item(0).nodeValue)
+							if '2-9' in XMLText(code).strip():
+								for i in range(2, 10):
+									#print i
+									#print repr((XMLText(code).strip()[:-5] + str(i)).lower()),
+									#print repr(XMLText(code.parentNode.nextSibling.nextSibling).strip())
+									ActionDict[(XMLText(code).strip()[:-5] + str(i)).lower()] = ((XMLText(code).strip()[:-5] + str(i)), XMLText(code.parentNode.nextSibling.nextSibling).strip())
+							elif '0-9' in XMLText(code).strip():
+								for i in range(10):
+									#print i
+									#print repr((XMLText(code).strip()[:-5] + str(i)).lower()),
+									#print repr(XMLText(code.parentNode.nextSibling.nextSibling).strip())
+									ActionDict[(XMLText(code).strip()[:-5] + str(i)).lower()] = ((XMLText(code).strip()[:-5] + str(i)), XMLText(code.parentNode.nextSibling.nextSibling).strip())
+							else:
+								if XMLText(code).strip().lower() not in ActionDict:
+									#print repr(XMLText(code).strip().lower()),
+									#print repr(XMLText(code.parentNode.nextSibling.nextSibling).strip())
+									ActionDict[XMLText(code).strip().lower()] = (XMLText(code).strip(), XMLText(code.parentNode.nextSibling.nextSibling).strip())
+						return ActionDict
+
+					ActionList = GetActions()
+					ActionDict = GetActionDescriptions()
+
+					for a in GENERAL_ACTIONS[0][4] + MEDIA_PLAYING_ACTIONS[0][4] + PLAYLIST_ACTIONS[0][4] + FULLSCREEN_VIDEO_ACTIONS[0][4] + SLIDESHOW_ACTIONS[0][4] + CALIBRATION_ACTIONS[0][4] + FILEMANAGER_ACTIONS[0][4] + ON_SCREEN_KEYBOARD_ACTIONS[0][4] + VISUALISATION_ACTIONS[0][4] + SHUTDOWN_ACTIONS[0][4] + UNCATEGORIZED_ACTIONS[0][4]:
+						#print a
+						if a[3].lower() in ActionList:
+							ActionList.remove(a[3])
+						#else:
+						#	print repr(a)
+
+					EGActionList = []
+					for action in sorted(ActionList):
+						try:
+							ActionDict[action]
+							#print repr((action, ActionDict[action][0], ActionDict[action][1], action))
+							EGActionList.append((action, ActionDict[action][0], ActionDict[action][1], action))
+						except KeyError:
+							#print "Description missing:", action
+							pass
+					#print repr(EGActionList)
+
+					import os
+					if not os.path.exists(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2')):
+					#if not os.path.exists(os.path.join('EventGhost', 'plugins', 'XBMC2')):
+						os.makedirs(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2'))
+						#os.makedirs(os.path.join('EventGhost', 'plugins', 'XBMC2'))
+
+					with open(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2', 'actions.dat'), 'wb') as f:
+					#with open(os.path.join('EventGhost', 'plugins', 'XBMC2', 'actions.dat'), 'wb') as f:
+						import pickle
+						pickle.dump(EGActionList, f, 1)
 				def ConnectionTest(event):
 					print "XBMC2: Starting connection test, trying to connect to XBMC using", panel.combo_box_IP.GetValue()
 
@@ -1358,6 +1463,9 @@ class XBMC2(eg.PluginClass):
 				def initPanel(self):
 					self.combo_box_IP = wx.ComboBox(self, wx.ID_ANY, value=pluginConfig['XBMC']['ip']+':'+str(pluginConfig['XBMC']['port']), choices=["127.0.0.1:80"], style=wx.CB_DROPDOWN)
 					self.button_IPTest = wx.Button(self, wx.ID_ANY, "Test")
+
+					self.button_UpdateActions = wx.Button(self, wx.ID_ANY, "Update Actions")
+
 					self.button_Search = wx.Button(self, wx.ID_ANY, "Search")
 					self.label_Username = wx.StaticText(self, wx.ID_ANY, "Username")
 					self.text_ctrl_Username = wx.TextCtrl(self, wx.ID_ANY, pluginConfig['XBMC']['username'])
@@ -1385,6 +1493,9 @@ class XBMC2(eg.PluginClass):
 					self.checkbox_logRawEvents = wx.CheckBox(self, wx.ID_ANY, "Log raw events")
 					self.sizer_Events_staticbox = wx.StaticBox(self, wx.ID_ANY, "Event settings")
 					self.button_IPTest.Bind(wx.EVT_BUTTON, ConnectionTest)
+
+					self.button_UpdateActions.Bind(wx.EVT_BUTTON, UpdateActions)
+
 					self.button_Search.Bind(wx.EVT_BUTTON, SearchForXBMC)
 					setPanelProperties(self)
 					doPanelLayout(self)
@@ -1392,6 +1503,9 @@ class XBMC2(eg.PluginClass):
 					self.combo_box_IP.SetMinSize((147, 21))
 					self.combo_box_IP.SetToolTipString("IP address of the XBMC you want to control.")
 					self.button_IPTest.SetToolTipString("Test to connect to XBMC")
+
+					self.button_UpdateActions.SetToolTipString('Add any new XBMC actions to a category "Manually Updated". You need to restart EventGhost for the new actions to be visible')
+
 					self.button_Search.SetToolTipString("Search for any XBMCs that are running and reachable over the LAN.")
 					self.text_ctrl_Username.SetToolTipString("Username that are specified in XBMC")
 					self.text_ctrl_Password.SetToolTipString("Password that are specified in XBMC")
@@ -1461,6 +1575,9 @@ class XBMC2(eg.PluginClass):
 					sizer_Broadcast.Add(sizer_BroadcastEnable, 1, wx.EXPAND, 0)
 					sizer_Events.Add(sizer_Broadcast, 1, wx.EXPAND, 0)
 					sizer_Events.Add(self.checkbox_logRawEvents, 0, 0, 0)
+
+					sizer_Events.Add(self.button_UpdateActions, 0, 0, 0)
+
 					self.sizer.Add(sizer_Events, 1, wx.EXPAND, 0)
 					self.sizer.Fit(self)
 
