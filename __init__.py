@@ -35,7 +35,7 @@ from threading import Event, Thread
 eg.RegisterPlugin(
     name = "XBMC2",
     author = "Joni Boren",
-    version = "0.6.28",
+    version = "0.6.29",
     kind = "program",
     guid = "{8C8B850C-773F-4583-AAD9-A568262B7933}",
     canMultiLoad = True,
@@ -1946,10 +1946,19 @@ class XBMC2(eg.PluginClass):
 				try:
 					sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
 				except:
-					eg.PrintError('JSON-RPC connect error: ')
-					import sys, traceback
-					traceback.print_exc()
-					raise
+					if debug:
+						eg.PrintError('JSON-RPC connect error: ')
+						import sys, traceback
+						traceback.print_exc()
+					try:
+						INTERFACE_ADDR = socket.gethostbyname(socket.gethostname())
+						mreq = socket.inet_aton(_SSDP_IP) + socket.inet_aton(INTERFACE_ADDR)
+						sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
+					except:
+						eg.PrintError('JSON-RPC connect error: ')
+						import sys, traceback
+						traceback.print_exc()
+						raise
 				sock.settimeout(10)
 				sock.bind(('', SSDP_PORT))
 				return sock
