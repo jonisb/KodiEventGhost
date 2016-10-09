@@ -35,7 +35,7 @@ from threading import Event, Thread
 eg.RegisterPlugin(
     name = "XBMC2",
     author = "Joni Boren",
-    version = "0.6.25",
+    version = "0.6.26",
     kind = "program",
     guid = "{8C8B850C-773F-4583-AAD9-A568262B7933}",
     canMultiLoad = True,
@@ -1976,7 +1976,11 @@ class XBMC2(eg.PluginClass):
 				sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
 				sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 				mreq = struct.pack("4sl", socket.inet_aton(SSDP_IP), socket.INADDR_ANY)
-				sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
+				try:
+					sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
+				except:
+					import sys
+					eg.PrintError('JSON-RPC connect error: ' + str(sys.exc_info()))
 				sock.settimeout(10)
 				sock.bind(('', SSDP_PORT))
 
@@ -2058,8 +2062,9 @@ class XBMC2(eg.PluginClass):
 					s.connect((self.pluginConfig['XBMC']['ip'], self.pluginConfig['JSONRPC']['port']))
 				except socket.error:
 					if debug:
-						import sys
-						eg.PrintError('XBMC2: connection error: ' + str(sys.exc_info()))
+						eg.PrintError('XBMC2: connection error: ')
+						import sys, traceback
+						traceback.print_exc()
 						print "XBMC2: Not able to connect to XBMC, will use SSDP to detect when XBMC is available."
 					WaitForXBMC()
 				else:
@@ -2087,10 +2092,14 @@ class XBMC2(eg.PluginClass):
 						except socket.error:
 							import sys
 							eg.PrintError('XBMC2: JSON socket.error: ' + str(sys.exc_info()[1]))
+							import sys, traceback
+							traceback.print_exc()
 							break
 						except:
 							import sys
 							eg.PrintError('XBMC2: Error: JSON-RPC event ' + str(sys.exc_info()))
+							import sys, traceback
+							traceback.print_exc()
 							break
 						else:
 							if self.pluginConfig['logRawEvents']:
@@ -2116,17 +2125,21 @@ class XBMC2(eg.PluginClass):
 										eg.PrintError('XBMC2: Error: JSON-RPC event, "method" missing ' + repr(message))
 										self.PrintError('JSON unrecogniced event type: \n' + "Raw event: %s" % repr(message))
 									else:
-										if 'notifications' in message['result']:
-											if debug:
-												print 'XBMC2: JSON-RPC responce: "notifications":', message['result']['notifications']
-											continue
-										if message['result'] == 'pong':
-											if debug:
-												print 'XBMC2: JSON-RPC responce: "pong".'
-											continue
+										try:
+											if 'notifications' in message['result']:
+												if debug:
+													print 'XBMC2: JSON-RPC responce: "notifications":', message['result']['notifications']
+												continue
+										except KeyError:
+											eg.PrintError('XBMC2: Error: JSON-RPC responce, "result" missing ' + repr(message))
 										else:
-											eg.PrintError('XBMC2: Error: JSON-RPC responce, "pong" missing ' + repr(message))
-											self.PrintError('JSON unrecogniced responce type: \n' + "Raw responce: %s" % repr(message))
+											if message['result'] == 'pong':
+												if debug:
+													print 'XBMC2: JSON-RPC responce: "pong".'
+												continue
+											else:
+												eg.PrintError('XBMC2: Error: JSON-RPC responce, "pong" missing ' + repr(message))
+												self.PrintError('JSON unrecogniced responce type: \n' + "Raw responce: %s" % repr(message))
 								else:
 									try:
 										payload = message['params']['data']
