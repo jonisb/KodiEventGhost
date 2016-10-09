@@ -33,7 +33,7 @@ from threading import Event, Thread
 eg.RegisterPlugin(
     name = "XBMC2",
     author = "Joni Boren",
-    version = "0.6.20",
+    version = "0.6.21",
     kind = "program",
     guid = "{8C8B850C-773F-4583-AAD9-A568262B7933}",
     canMultiLoad = True,
@@ -1291,6 +1291,7 @@ class XBMC2(eg.PluginClass):
 				#'workaround': False,
     	},
     	'logRawEvents': False,
+    	'logDebug': False,
     }
 
     def __init__(self):
@@ -1535,6 +1536,9 @@ class XBMC2(eg.PluginClass):
 					self.checkbox_BroadcastWorkaround = wx.CheckBox(self, wx.ID_ANY, "Repeating events workaround")
 					self.sizer_Broadcast_staticbox = wx.StaticBox(self, wx.ID_ANY, "Broadcast events")
 					self.checkbox_logRawEvents = wx.CheckBox(self, wx.ID_ANY, "Log raw events")
+
+					self.checkbox_logDebug = wx.CheckBox(self, wx.ID_ANY, "Debug")
+
 					self.sizer_Events_staticbox = wx.StaticBox(self, wx.ID_ANY, "Event settings")
 					self.button_IPTest.Bind(wx.EVT_BUTTON, ConnectionTest)
 
@@ -1561,11 +1565,16 @@ class XBMC2(eg.PluginClass):
 					self.checkbox_JSONRPCEnable.SetValue(pluginConfig['JSONRPC']['enable'])
 					self.checkbox_BroadcastEnable.SetValue(pluginConfig['Broadcast']['enable'])
 					self.checkbox_logRawEvents.SetValue(pluginConfig['logRawEvents'])
+
+					self.checkbox_logDebug.SetValue(pluginConfig['logDebug'])
+
 					self.spin_ctrl_JSONRPCPort.SetMinSize((60, -1))
 					self.spin_ctrl_JSONRPCPort.SetToolTipString("Port used by XBMC to recieve notifications")
 					self.spin_ctrl_Retrys.SetMinSize((50, -1))
 					self.spin_ctrl_Time.SetMinSize((50, -1))
 					self.checkbox_logRawEvents.SetToolTipString("Show any events from XBMC in the log, exactly as XBMC sends them.")
+
+					self.checkbox_logDebug.SetToolTipString("Activate debugging messages in the log(Will spam the log so use only when needed).")
 				def doPanelLayout(self):
 					self.sizer = wx.BoxSizer(wx.VERTICAL)
 					self.sizer_Events_staticbox.Lower()
@@ -1620,6 +1629,8 @@ class XBMC2(eg.PluginClass):
 					sizer_Events.Add(sizer_Broadcast, 1, wx.EXPAND, 0)
 					sizer_Events.Add(self.checkbox_logRawEvents, 0, 0, 0)
 
+					sizer_Events.Add(self.checkbox_logDebug, 0, 0, 0)
+
 					sizer_Events.Add(self.button_UpdateActions, 0, 0, 0)
 
 					self.sizer.Add(sizer_Events, 1, wx.EXPAND, 0)
@@ -1668,6 +1679,9 @@ class XBMC2(eg.PluginClass):
 						changed = True
 					if pluginConfig['logRawEvents'] != panel.checkbox_logRawEvents.GetValue():
 						pluginConfig['logRawEvents'] = panel.checkbox_logRawEvents.GetValue()
+						changed = True
+					if pluginConfig['logDebug'] != panel.checkbox_logDebug.GetValue():
+						pluginConfig['logDebug'] = panel.checkbox_logDebug.GetValue()
 						changed = True
 					#pluginConfig['JSONRPC']['retrys'] = int(JSONRPCNotificationRetrys.GetValue())
 					#pluginConfig['JSONRPC']['retryTime'] = int(JSONRPCNotificationRetryTime.GetValue())
@@ -1728,7 +1742,7 @@ class XBMC2(eg.PluginClass):
 
     def JSONRPCNotifications(self, stopJSONRPCNotifications):
 			import os
-			debug = False
+			debug = self.pluginConfig['logDebug']
 			#import socket
 			#socket.setdefaulttimeout(3)
 			def Headers(data):
@@ -1867,6 +1881,9 @@ class XBMC2(eg.PluginClass):
 						except socket.timeout:
 							if debug:
 								print "XBMC2: JSON-RPC notifications: Wait for event: Timeout."
+							s.send(json.dumps({'jsonrpc':'2.0', 'method': 'JSONRPC.Ping', 'id':1}))
+							if debug:
+								print 'XBMC2: JSON-RPC sent: "ping".'
 							continue
 						except socket.error:
 							import sys
@@ -1887,15 +1904,26 @@ class XBMC2(eg.PluginClass):
 								#eg.PrintError('XBMC2: Error decoding: JSON-RPC event \n' + "Raw event: %s" % repr(message))
 								#continue
 								messages = JSONSplit(message)
-							#else:
+							#else:Raw event: {u'jsonrpc': u'2.0', u'id': 1, u'result': u'pong'}
 							for message in messages:
 								if self.pluginConfig['logRawEvents']:
 									print "Raw event: %s" % repr(message)
 								try:
 									event = message['method']
 								except:
-									eg.PrintError('XBMC2: Error: JSON-RPC event, "method" missing ' + repr(message))
-									self.PrintError('JSON unrecogniced event type: \n' + "Raw event: %s" % repr(message))
+									try:
+										message['id']
+									except:
+										eg.PrintError('XBMC2: Error: JSON-RPC event, "method" missing ' + repr(message))
+										self.PrintError('JSON unrecogniced event type: \n' + "Raw event: %s" % repr(message))
+									else:
+										if message['result'] == 'pong':
+											if debug:
+												print 'XBMC2: JSON-RPC responce: "pong".'
+											continue
+										else:
+											eg.PrintError('XBMC2: Error: JSON-RPC responce, "pong" missing ' + repr(message))
+											self.PrintError('JSON unrecogniced responce type: \n' + "Raw responce: %s" % repr(message))
 								else:
 									try:
 										payload = message['params']['data']
