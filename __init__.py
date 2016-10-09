@@ -35,7 +35,7 @@ from threading import Event, Thread
 eg.RegisterPlugin(
     name = "XBMC2",
     author = "Joni Boren",
-    version = "0.6.32",
+    version = "0.6.33",
     kind = "program",
     guid = "{8C8B850C-773F-4583-AAD9-A568262B7933}",
     canMultiLoad = True,
@@ -2192,7 +2192,8 @@ class XBMC2(eg.PluginClass):
 													print 'XBMC2: JSON-RPC responce: "notifications":', message['result']['notifications']
 												continue
 										except KeyError:
-											eg.PrintError('XBMC2: Error: JSON-RPC responce, "result" missing ' + repr(message))
+											if debug:
+												eg.PrintError('XBMC2: Error: JSON-RPC responce, "result" missing ' + repr(message))
 										else:
 											if message['result'] == 'pong':
 												if debug:
