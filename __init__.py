@@ -33,7 +33,7 @@ from threading import Event, Thread
 eg.RegisterPlugin(
     name = "XBMC2",
     author = "Joni Boren",
-    version = "0.6.12",
+    version = "0.6.13",
     kind = "program",
     guid = "{8C8B850C-773F-4583-AAD9-A568262B7933}",
     canMultiLoad = True,
@@ -520,6 +520,61 @@ GAMEPAD_BUTTONS = (
 )),
 )
 
+# Remote buttons handled by XBMC.  For a list of all buttons see: http://wiki.xbmc.org/?title=Keymap.xml#Custom_Joystick_Configuration
+
+APPLEREMOTE_BUTTONS = (
+(eg.ActionGroup, "AppleRemote", "AppleRemote", None, (
+	("AppleRemote1", "plus", "AppleRemote", 1),
+	("AppleRemote2", "minus", "AppleRemote", 2),
+	("AppleRemote3", "left", "AppleRemote", 3),
+	("AppleRemote4", "right", "AppleRemote", 4),
+	("AppleRemote5", "center", "AppleRemote", 5),
+	("AppleRemote6", "menu", "AppleRemote", 6),
+	("AppleRemote7", "hold center", "AppleRemote", 7),
+	("AppleRemote8", "hold menu", "AppleRemote", 8),
+
+	#<!-- old buttons for ATV1 <2.2, used on OSX  -->
+	("AppleRemote9", "hold left", "AppleRemote:\nold buttons for ATV1 <2.2, used on OSX", 9),
+	("AppleRemote10", "hold right", "AppleRemote:\nold buttons for ATV1 <2.2, used on OSX", 10),
+
+	#<!-- new aluminium remote buttons  -->
+	("AppleRemote12", "play/pause", "AppleRemote:\nnew aluminium remote buttons", 12),
+
+	#<!-- Additional buttons via Harmony Apple TV remote profile - these are also the learned buttons on Apple TV 2gen-->
+	("AppleRemote13", "pageup", "AppleRemote:\nAdditional buttons via Harmony Apple TV remote profile - these are also the learned buttons on Apple TV 2gen", 13),
+	("AppleRemote14", "pagedown", "AppleRemote:\nAdditional buttons via Harmony Apple TV remote profile - these are also the learned buttons on Apple TV 2gen", 14),
+	("AppleRemote15", "pause", "AppleRemote:\nAdditional buttons via Harmony Apple TV remote profile - these are also the learned buttons on Apple TV 2gen", 15),
+	("AppleRemote16", "play2", "AppleRemote:\nAdditional buttons via Harmony Apple TV remote profile - these are also the learned buttons on Apple TV 2gen", 16),
+	("AppleRemote17", "stop", "AppleRemote:\nAdditional buttons via Harmony Apple TV remote profile - these are also the learned buttons on Apple TV 2gen", 17),
+	("AppleRemote18", "fast fwd", "AppleRemote:\nAdditional buttons via Harmony Apple TV remote profile - these are also the learned buttons on Apple TV 2gen", 18),
+	("AppleRemote19", "rewind", "AppleRemote:\nAdditional buttons via Harmony Apple TV remote profile - these are also the learned buttons on Apple TV 2gen", 19),
+	("AppleRemote20", "skip fwd", "AppleRemote:\nAdditional buttons via Harmony Apple TV remote profile - these are also the learned buttons on Apple TV 2gen", 20),
+	("AppleRemote21", "skip back", "AppleRemote:\nAdditional buttons via Harmony Apple TV remote profile - these are also the learned buttons on Apple TV 2gen", 21),
+
+	#<!-- Learned remote buttons (ATV1 >2.3) -->
+	("AppleRemote70", "Play", "AppleRemote:\nLearned remote buttons (ATV1 >2.3)", 70),
+	("AppleRemote71", "Pause", "AppleRemote:\nLearned remote buttons (ATV1 >2.3)", 71),
+	("AppleRemote72", "Stop", "AppleRemote:\nLearned remote buttons (ATV1 >2.3)", 72),
+	("AppleRemote73", "Previous", "AppleRemote:\nLearned remote buttons (ATV1 >2.3)", 73),
+	("AppleRemote74", "Next", "AppleRemote:\nLearned remote buttons (ATV1 >2.3)", 74),
+	("AppleRemote75", "Rewind", "AppleRemote:\nLearned remote buttons (ATV1 >2.3)", 75),
+	("AppleRemote76", "Forward", "AppleRemote:\nLearned remote buttons (ATV1 >2.3)", 76),
+	("AppleRemote77", "Return", "AppleRemote:\nLearned remote buttons (ATV1 >2.3)", 77),
+	("AppleRemote78", "Enter", "AppleRemote:\nLearned remote buttons (ATV1 >2.3)", 78),
+
+	#<!-- few gestures from Apple's iPhone Remote (ATV1 > 2.3 ?) -->
+	("AppleRemote80", "SwipeLeft", "AppleRemote:\nfew gestures from Apple's iPhone Remote (ATV1 > 2.3 ?)", 80),
+	("AppleRemote81", "SwipeRight", "AppleRemote:\nfew gestures from Apple's iPhone Remote (ATV1 > 2.3 ?)", 81),
+	("AppleRemote82", "SwipeUp", "AppleRemote:\nfew gestures from Apple's iPhone Remote (ATV1 > 2.3 ?)", 82),
+	("AppleRemote83", "SwipeDown", "AppleRemote:\nfew gestures from Apple's iPhone Remote (ATV1 > 2.3 ?)", 83),
+
+	("AppleRemote85", "FlickLeft", "AppleRemote:\nfew gestures from Apple's iPhone Remote (ATV1 > 2.3 ?)", 85),
+	("AppleRemote86", "FlickRight", "AppleRemote:\nfew gestures from Apple's iPhone Remote (ATV1 > 2.3 ?)", 86),
+	("AppleRemote87", "FlickUp", "AppleRemote:\nfew gestures from Apple's iPhone Remote (ATV1 > 2.3 ?)", 87),
+	("AppleRemote88", "FlickDown", "AppleRemote:\nfew gestures from Apple's iPhone Remote (ATV1 > 2.3 ?)", 88),
+)),
+)
+
 # Keyboard keys handled by XBMC.  For a list of all keys see: http://wiki.xbmc.org/index.php?title=List_of_XBMC_keynames
 
 KEYBOARD_KEYS = (
@@ -602,6 +657,14 @@ class GamepadPrototype(eg.ActionClass):
     def __call__(self):
         try:
             packet = PacketBUTTON(map_name=str("XG"), button_name=str(self.value), repeat=0)
+            packet.send(self.plugin.xbmc.sock, self.plugin.xbmc.addr, self.plugin.xbmc.uid)
+        except:
+            raise self.Exceptions.ProgramNotRunning
+
+class AppleRemotePrototype(eg.ActionClass):
+    def __call__(self):
+        try:
+            packet = PacketBUTTON(map_name=str("JS0:AppleRemote"), code=self.value, repeat=0)
             packet.send(self.plugin.xbmc.sock, self.plugin.xbmc.addr, self.plugin.xbmc.uid)
         except:
             raise self.Exceptions.ProgramNotRunning
@@ -1194,6 +1257,7 @@ class XBMC2(eg.PluginClass):
         ButtonsGroup = self.AddGroup("Buttons", "Button actions to send to XBMC")
         ButtonsGroup.AddActionsFromList(REMOTE_BUTTONS, ButtonPrototype)
         ButtonsGroup.AddActionsFromList(GAMEPAD_BUTTONS, GamepadPrototype)
+        ButtonsGroup.AddActionsFromList(APPLEREMOTE_BUTTONS, AppleRemotePrototype)
         ButtonsGroup.AddActionsFromList(KEYBOARD_KEYS, KeyboardPrototype)
         ActionsGroup = self.AddGroup("Actions", "Actions to send to XBMC")
         ActionsGroup.AddActionsFromList(GENERAL_ACTIONS, ActionPrototype)
