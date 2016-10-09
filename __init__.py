@@ -35,7 +35,7 @@ from threading import Event, Thread
 eg.RegisterPlugin(
     name = "XBMC2",
     author = "Joni Boren",
-    version = "0.6.26",
+    version = "0.6.28",
     kind = "program",
     guid = "{8C8B850C-773F-4583-AAD9-A568262B7933}",
     canMultiLoad = True,
@@ -955,8 +955,9 @@ class XBMC_JSON_RPC:
       #URLError timed out (timeout('timed out',),)
       #URLError <class 'socket.timeout'> (timeout('timed out',),)
 		except:
-			#import sys
-			#eg.PrintError('JSON-RPC connect error: ' + str(sys.exc_info()))
+			#eg.PrintError('JSON-RPC connect error: ')
+			#import sys, traceback
+			#traceback.print_exc()
 			raise
 		#except IOError:
 		#eg.PrintError('JSON-RPC connection error:'+' http://'+self.ip+':'+self.port+'\n'+json.dumps(self.jsoninit))
@@ -965,8 +966,9 @@ class XBMC_JSON_RPC:
 				#print responce
 				return json.loads(responce)
 			except ValueError as e:
-				#import sys
-				#eg.PrintError("Server responded but didn't provide valid JSON data: " + str(sys.exc_info()))
+				#eg.PrintError("Server responded but didn't provide valid JSON data: ")
+				#import sys, traceback
+				#traceback.print_exc()
 				#eg.PrintError("Error data: " + str(e)+': "'+str(responce)+'"')
 				raise
 
@@ -1652,8 +1654,9 @@ class XBMC2(eg.PluginClass):
 					except ValueError as e:
 						eg.PrintError("XBMC2: Server responded but didn't provide valid JSON data. Check that your IP and port are correct.")
 					except:
-						import sys
-						eg.PrintError('XBMC2: Unknown error: ' + str(sys.exc_info()))
+						eg.PrintError('XBMC2: Unknown error: ')
+						import sys, traceback
+						traceback.print_exc()
 					finally:
 						self.JSON_RPC.close()
 
@@ -1677,8 +1680,9 @@ class XBMC2(eg.PluginClass):
 							eg.PrintError('XBMC2:', str(e.reason))
 							print 'XBMC2: Please check that XBMC is running, that your IP address and port are correct.\nXBMC2: Also in XBMCs settings\\Network\\Services\\ "Allow control of XBMC via HTTP" needs to be set.'
 						except:
-							import sys
-							eg.PrintError('XBMC2: Unknown error: ' + str(sys.exc_info()))
+							eg.PrintError('XBMC2: Unknown error: ')
+							import sys, traceback
+							traceback.print_exc()
 						else:
 								if result == 'OK':
 									print 'XBMC2: HTTPAPI works.', result
@@ -1931,9 +1935,24 @@ class XBMC2(eg.PluginClass):
 
     def JSONRPCNotifications(self, stopJSONRPCNotifications):
 			import os
+			import struct
+			from collections import deque
+			import select
 			debug = self.pluginConfig['logDebug']
-			#import socket
-			#socket.setdefaulttimeout(3)
+			def SSDPInit(SSDP_IP, SSDP_PORT):
+				sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+				sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+				mreq = struct.pack("4sl", socket.inet_aton(SSDP_IP), socket.INADDR_ANY)
+				try:
+					sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
+				except:
+					eg.PrintError('JSON-RPC connect error: ')
+					import sys, traceback
+					traceback.print_exc()
+					raise
+				sock.settimeout(10)
+				sock.bind(('', SSDP_PORT))
+				return sock
 			def Headers(data):
 				headers = {}
 				for line in data.splitlines():
@@ -1968,21 +1987,32 @@ class XBMC2(eg.PluginClass):
 							except:
 								continue
 				return parts
-			def WaitForXBMC():
-				import struct
+			def BufferedRead(Socket):
+				_PacketSize = 4096
+				Buffer = deque()
+				rlist = [Socket, ]
+				while True:
+					if Buffer:
+						ready, _, _ = select.select(rlist, [], [], 0)
+						if ready:
+							data = Socket.recv(_PacketSize)
+						else:
+							#print('{0}: Buffer: {1}\n'.format(MyName, len(Buffer)), end='')
+							#Q.put((MyName, Buffer.popleft(), len(Buffer)), True)
+							yield Buffer.popleft()
+							continue
+					else:
+						try:
+							data = Socket.recv(_PacketSize)
+						except socket.timeout:
+							#logging.debug('SSDPListener: Wait for event: Timeout.')
+							continue
+					Buffer.append(data)
+
+			def WaitForXBMC(Socket):
 				USNCache = []
 				XBMCDetected = False
-
-				sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
-				sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-				mreq = struct.pack("4sl", socket.inet_aton(SSDP_IP), socket.INADDR_ANY)
-				try:
-					sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
-				except:
-					import sys
-					eg.PrintError('JSON-RPC connect error: ' + str(sys.exc_info()))
-				sock.settimeout(10)
-				sock.bind(('', SSDP_PORT))
+				BRead = BufferedRead(Socket)
 
 				if debug:
 					print 'XBMC2: SSDP is on'
@@ -1990,7 +2020,8 @@ class XBMC2(eg.PluginClass):
 					if debug:
 						print 'XBMC2: SSDP: Wait for event.'
 					try:
-						data = sock.recv(4096)
+						#data = sock.recv(4096)
+						data = BRead.next()
 						headers = Headers(data)
 						#headers = Headers(sock.recv(4096))
 					except socket.timeout:
@@ -2043,15 +2074,17 @@ class XBMC2(eg.PluginClass):
 						except KeyError:
 							if debug:
 								print 'XBMC2: SSDP: "Start-line" test failed: Content of headers:', headers
-								import sys
-								eg.PrintError('JSON-RPC connect error: ' + str(sys.exc_info()))
+								eg.PrintError('JSON-RPC connect error: ')
+								import sys, traceback
+								traceback.print_exc()
 
-				sock.close()
+				#sock.close()
 				if debug:
 					print 'XBMC2: SSDP is off'
 
 			SSDP_IP = '239.255.255.250'
 			SSDP_PORT = 1900
+			Socket = SSDPInit(SSDP_IP, SSDP_PORT)
 			print "XBMC2: Activating JSON-RPC notifications"
 			while not stopJSONRPCNotifications.isSet():
 				s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -2066,7 +2099,7 @@ class XBMC2(eg.PluginClass):
 						import sys, traceback
 						traceback.print_exc()
 						print "XBMC2: Not able to connect to XBMC, will use SSDP to detect when XBMC is available."
-					WaitForXBMC()
+					WaitForXBMC(Socket)
 				else:
 					print "XBMC2: Connected to XBMC (", self.pluginConfig['XBMC']['ip'], ":", self.pluginConfig['JSONRPC']['port'], "), ready to recive JSON-RPC notifications."
 					self.TriggerEvent('System.OnStart')
@@ -2090,14 +2123,12 @@ class XBMC2(eg.PluginClass):
 								print 'XBMC2: JSON-RPC sent: "ping".'
 							continue
 						except socket.error:
-							import sys
-							eg.PrintError('XBMC2: JSON socket.error: ' + str(sys.exc_info()[1]))
+							eg.PrintError('XBMC2: JSON socket.error: ')
 							import sys, traceback
 							traceback.print_exc()
 							break
 						except:
-							import sys
-							eg.PrintError('XBMC2: Error: JSON-RPC event ' + str(sys.exc_info()))
+							eg.PrintError('XBMC2: Error: JSON-RPC event ')
 							import sys, traceback
 							traceback.print_exc()
 							break
@@ -2107,8 +2138,9 @@ class XBMC2(eg.PluginClass):
 							try:
 								messages = [json.loads(message)]
 							except:
-								#import sys
-								#eg.PrintError('XBMC2: Error: JSON-RPC event ' + str(sys.exc_info()))
+								#eg.PrintError('XBMC2: Error: JSON-RPC event ')
+								import sys, traceback
+								traceback.print_exc()
 								#eg.PrintError('XBMC2: Error decoding: JSON-RPC event \n' + "Raw event: %s" % repr(message))
 								#continue
 								messages = JSONSplit(message)
@@ -2525,12 +2557,14 @@ class XBMC2(eg.PluginClass):
 					#print "XBMC2: Broadcast timeout"
 					continue
 				except socket.error:
-					import sys
-					eg.PrintError('XBMC2: socket.error: ' + str(sys.exc_info()[1]))
+					eg.PrintError('XBMC2: socket.error: ')
+					import sys, traceback
+					traceback.print_exc()
 					continue
 				except:
-					import sys
-					eg.PrintError('XBMC2: Error: get1: ' + str(sys.exc_info()))
+					eg.PrintError('XBMC2: Error: get1: ')
+					import sys, traceback
+					traceback.print_exc()
 					continue
 				if self.pluginConfig['logRawEvents']:
 					print "XBMC2: Raw event: %s %s" % (repr(message), repr(addr))
