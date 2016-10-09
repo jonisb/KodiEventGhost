@@ -25,6 +25,8 @@ from xml.dom.minidom import Node
 import socket
 import base64
 from urlparse import urlparse
+import os
+import pickle
 
 from threading import Event, Thread
 
@@ -33,7 +35,7 @@ from threading import Event, Thread
 eg.RegisterPlugin(
     name = "XBMC2",
     author = "Joni Boren",
-    version = "0.6.23",
+    version = "0.6.24",
     kind = "program",
     guid = "{8C8B850C-773F-4583-AAD9-A568262B7933}",
     canMultiLoad = True,
@@ -671,10 +673,10 @@ class BuiltInFunctions(eg.ActionBase):
 		def UpdateFunctions():
 			def GetFunctions():
 				try:
-					with contextlib.closing(urllib2.urlopen(urllib2.Request('https://raw.githubusercontent.com/xbmc/xbmc/master/xbmc/interfaces/Builtins.cpp'))) as Builtinscpp:
+					with contextlib.closing(urllib2.urlopen(urllib2.Request('https://raw.githubusercontent.com/xbmc/xbmc/Isengard/xbmc/interfaces/Builtins.cpp'))) as Builtinscpp:
 						Builtinslines = Builtinscpp.read().splitlines(False)
 				except (urllib2.HTTPError, urllib2.URLError):
-					eg.PrintError('XBMC2: Error: Can\'t connect to "https://raw.githubusercontent.com/xbmc/xbmc/master/xbmc/interfaces/Builtins.cpp" to update "BuiltInFunctions".')
+					eg.PrintError('XBMC2: Error: Can\'t connect to "https://raw.githubusercontent.com/xbmc/xbmc/Isengard/xbmc/interfaces/Builtins.cpp" to update "BuiltInFunctions".')
 					raise
 				else:
 					Builtinslist = Builtinslines[Builtinslines.index("const BUILT_IN commands[] = {") + 1:Builtinslines.index("};")]
@@ -735,12 +737,21 @@ class BuiltInFunctions(eg.ActionBase):
 						Syntax = Function
 					BuiltInFunctionList[Function] = {'Syntax': Syntax, 'Description': Description, 'Parameters': Parameters}
 
+				"""
 				if not os.path.exists(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2')):
 					os.makedirs(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2'))
 				with open(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2', 'BuiltInFunctions.dat'), 'wb') as f:
 					pickle.dump(BuiltInFunctionList, f, 1)
 					print 'XBMC2: Builtin functions updated.'
+				"""
+				try:
+					writeData('BuiltInFunctions.dat', BuiltInFunctionList)
+				except IOError:
+					pass
+				else:
+					print 'XBMC2: Builtin functions updated.'
 
+		"""
 		def loadfile():
 			try:
 				with open(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2', 'BuiltInFunctions.dat'), 'rb') as f:
@@ -748,7 +759,7 @@ class BuiltInFunctions(eg.ActionBase):
 			except IOError:
 				print 'XBMC2: Warning: Failed to open: BuiltInFunctions.dat'
 				raise
-
+		"""
 		def OnUpdate(event):
 			UpdateFunctions()
 
@@ -814,7 +825,8 @@ class BuiltInFunctions(eg.ActionBase):
 
 		panel = eg.ConfigPanel()
 		try:
-			BuiltInFunctionList = loadfile()
+			#BuiltInFunctionList = loadfile()
+			BuiltInFunctionList = readData('BuiltInFunctions.dat')
 		except IOError:
 			UpdateFunctions()
 
@@ -863,7 +875,6 @@ class XBMC_HTTP_API:
 	def connect(self, ip="127.0.0.1", port="80", username='', password=''):
 		self.ip = ip
 		self.port = port
-		#import base64
 		self.base64string = base64.encodestring('%s:%s' % (username, password)).replace('\n', '')
 		print 'HTTP API connected'
 
@@ -907,9 +918,7 @@ class XBMC_JSON_RPC:
 	def connect(self, ip="127.0.0.1", port=80, username='', password=''):
 		self.ip = ip
 		self.port = str(port)
-		#import base64
 		self.base64string = base64.encodestring('%s:%s' % (username, password)).replace('\n', '')
-		#self.base64string = base64.encodestring('%s:%s' % (username, password))[:-1]
 		print 'JSON-RPC connected'
 
 	def send(self, method, params = None, wait=True):
@@ -1049,6 +1058,7 @@ class HTTPAPI(eg.ActionClass):
 
 		def OnUpdate(event):
 			UpdateCommands()
+			"""
 			try:
 				with open(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2', 'httpapi.dat'), 'rb') as f:
 					import pickle
@@ -1056,6 +1066,11 @@ class HTTPAPI(eg.ActionClass):
 			except IOError:
 #				print 'Failed to open: httpapi.dat'
 				eg.PrintError('Failed to open: httpapi.dat')
+			"""
+			try:
+				httpapi.Headers, httpapi.Commands = readData('httpapi.dat')
+			except IOError:
+				pass
 			else:
 				category = OldCategory
 				HBoxControl.Clear()
@@ -1085,45 +1100,46 @@ class HTTPAPI(eg.ActionClass):
 			return Text
 		def UpdateCommands():
 			httpapi.Headers = [];httpapi.Commands = []
-			doc = xml.dom.minidom.parse(urllib2.urlopen('http://wiki.xbmc.org/index.php?title=Web_Server_HTTP_API'))
-			for h3 in doc.getElementsByTagName("h3")[10:-1]:
-				for span in h3.getElementsByTagName("span"):
-					httpapi.Headers.append(span.childNodes[0].data)
-			Header = 0
-			for node in doc.getElementsByTagName("table")[3:9]:
-				for node2 in node.getElementsByTagName("tr")[1:]:
-					httpapi.Commands.append([[],[],[]])
-					node3 = node2.getElementsByTagName("td")[0]
-					for node4 in node3.childNodes:
-						if node4.nodeType == Node.TEXT_NODE:
-							Text = node4.data.strip()
-							httpapi.Commands[Header][1].append(Text)
-							Pos = Text.find('(')
-							if (Pos != -1):
-								httpapi.Commands[Header][0].append(Text[:Pos])
-							else:
-								httpapi.Commands[Header][0].append(Text)
-						else:
-							print '<'+node4.tagName+'>'
-					httpapi.Commands[Header][2].append(GetText(node2.getElementsByTagName("td")[1]).strip())
-				Header += 1
-#			import os
-			if not os.path.exists(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2')):
-				os.makedirs(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2'))
 
-			with open(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2', 'httpapi.dat'), 'wb') as f:
-				import pickle
-				pickle.dump((httpapi.Headers, httpapi.Commands), f, 1)
+			try:
+				doc = xml.dom.minidom.parseString(urllib2.urlopen(urllib2.Request('http://kodi.wiki/view/Web_Server_HTTP_API')).read())
+			except (urllib2.HTTPError, urllib2.URLError):
+				print "Connect error"
+			else:
+				for h3 in doc.getElementsByTagName("h3")[10:-1]:
+					for span in h3.getElementsByTagName("span"):
+						httpapi.Headers.append(span.childNodes[0].data)
+				Header = 0
+				for node in doc.getElementsByTagName("table")[3:9]:
+					for node2 in node.getElementsByTagName("tr")[1:]:
+						httpapi.Commands.append([[],[],[]])
+						node3 = node2.getElementsByTagName("td")[0]
+						for node4 in node3.childNodes:
+							if node4.nodeType == Node.TEXT_NODE:
+								Text = node4.data.strip()
+								httpapi.Commands[Header][1].append(Text)
+								Pos = Text.find('(')
+								if (Pos != -1):
+									httpapi.Commands[Header][0].append(Text[:Pos])
+								else:
+									httpapi.Commands[Header][0].append(Text)
+							else:
+								print '<'+node4.tagName+'>'
+						httpapi.Commands[Header][2].append(GetText(node2.getElementsByTagName("td")[1]).strip())
+					Header += 1
+				try:
+					writeData('httpapi.dat', (httpapi.Headers, httpapi.Commands))
+				except IOError:
+					pass
 
 		import os
 		try:
-			with open(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2', 'httpapi.dat'), 'rb') as f:
-				import pickle
-				httpapi.Headers, httpapi.Commands = pickle.load(f)
+			httpapi.Headers, httpapi.Commands = readData('httpapi.dat')
 		except IOError:
-			category = 0
-			httpapi.Headers = ['No categorys']
-			httpapi.Commands = [[['No commands'],[''],['']]]
+			UpdateCommands()
+			#category = 0
+			#httpapi.Headers = ['No categorys']
+			#httpapi.Commands = [[['No commands'],[''],['']]]
 		panel = eg.ConfigPanel()
 		HBoxControl = wx.ComboBox(panel, -1, value=httpapi.Headers[category], choices=httpapi.Headers, style=wx.CB_READONLY)
 		comboBoxControl = wx.ComboBox(panel, -1, value=command, choices=httpapi.Commands[category][0])
@@ -1161,6 +1177,26 @@ class HTTPAPI(eg.ActionClass):
 		while panel.Affirmed():
 			panel.SetResult(comboBoxControl.GetValue(), textControl1.GetValue(), HBoxControl.GetSelection(), CheckBox.GetValue())
 
+def readData(filename):
+	try:
+		with open(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2', filename), 'rb') as f:
+			print "Reading:", filename
+			return pickle.load(f)
+	except IOError:
+		eg.PrintError('XBMC2: Error opening: ' + filename)
+		raise
+
+def writeData(filename, data):
+	if not os.path.exists(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2')):
+		os.makedirs(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2'))
+	try:
+		with open(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2', filename), 'wb') as f:
+			print "Writing:", filename
+			pickle.dump(data, f, 1)
+	except IOError:
+		eg.PrintError('XBMC2: Error writing to:', filename)
+		raise
+
 class JSONRPC(eg.ActionClass):
 	description = "Run any <a href='http://wiki.xbmc.org/index.php?title=JSON_RPC'>XBMC JSON-RPC</a> method"
 
@@ -1186,8 +1222,6 @@ class JSONRPC(eg.ActionClass):
 			raise self.Exceptions.ProgramNotRunning
 
 	def Configure(self, method="JSONRPC.Introspect", param="", log=True, wait=True):
-		import os
-		import pickle
 		class record:
 			Namespaces = ['No namespaces']
 			Methods = {'No namespaces':['No methods']}
@@ -1196,11 +1230,9 @@ class JSONRPC(eg.ActionClass):
 		def OnUpdate(event):
 			UpdateMethods()
 			try:
-				with open(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2', 'jsonrpc.dat'), 'rb') as f:
-					jsonrpc.Namespaces, jsonrpc.Methods, jsonrpc.Descriptions = pickle.load(f)
+				jsonrpc.Namespaces, jsonrpc.Methods, jsonrpc.Descriptions = readData('jsonrpc.dat')
 			except IOError:
-#				print 'Error opening: jsonrpc.dat'
-				eg.PrintError('Error opening: jsonrpc.dat')
+				pass
 			else:
 				HBoxControl.Clear()
 				for i in jsonrpc.Namespaces:
@@ -1229,10 +1261,10 @@ class JSONRPC(eg.ActionClass):
 									jsonrpc.Descriptions[namespace].append(responce['result']['methods'][method]['description'])
 								else:
 									jsonrpc.Descriptions[namespace].append('')
-							if not os.path.exists(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2')):
-								os.makedirs(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2'))
-							with open(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2', 'jsonrpc.dat'), 'wb') as f:
-								pickle.dump((jsonrpc.Namespaces, jsonrpc.Methods, jsonrpc.Descriptions), f, 1)
+							try:
+								writeData('jsonrpc.dat', (jsonrpc.Namespaces, jsonrpc.Methods, jsonrpc.Descriptions))
+							except IOError:
+								pass
 							return False
 						elif responce.has_key('error'):
 #					print 'Error', responce['error']
@@ -1256,10 +1288,10 @@ class JSONRPC(eg.ActionClass):
 									jsonrpc.Descriptions[namespace] = []
 								jsonrpc.Methods[namespace].append(method['command'][method['command'].find('.')+1:])
 								jsonrpc.Descriptions[namespace].append(method['description'])
-							if not os.path.exists(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2')):
-								os.makedirs(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2'))
-							with open(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2', 'jsonrpc.dat'), 'wb') as f:
-								pickle.dump((jsonrpc.Namespaces, jsonrpc.Methods, jsonrpc.Descriptions), f, 1)
+							try:
+								writeData('jsonrpc.dat', (jsonrpc.Namespaces, jsonrpc.Methods, jsonrpc.Descriptions))
+							except IOError:
+								pass
 							return False
 						elif responce.has_key('error'):
 #					print 'Error', responce['error']
@@ -1289,11 +1321,9 @@ class JSONRPC(eg.ActionClass):
 
 		panel = eg.ConfigPanel()
 		try:
-			with open(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2', 'jsonrpc.dat'), 'rb') as f:
-				jsonrpc.Namespaces, jsonrpc.Methods, jsonrpc.Descriptions = pickle.load(f)
+			jsonrpc.Namespaces, jsonrpc.Methods, jsonrpc.Descriptions = readData('jsonrpc.dat')
 		except IOError:
-#			print 'Error opening: jsonrpc.dat'
-			eg.PrintError('Error opening: jsonrpc.dat')
+			UpdateMethods()
 		HBoxControl = wx.ComboBox(panel, -1, value=method[:method.find('.')], choices=jsonrpc.Namespaces, style=wx.CB_READONLY)
 		comboBoxControl = wx.ComboBox(panel, -1, value=method[method.find('.')+1:], choices=jsonrpc.Methods[jsonrpc.Namespaces[HBoxControl.GetSelection()]] , style=wx.CB_READONLY)
 		textControl2 = wx.TextCtrl(panel, -1, param, size=(500, -1))
@@ -1483,10 +1513,7 @@ class XBMC2(eg.PluginClass):
         ActionsGroup.AddActionsFromList(SHUTDOWN_ACTIONS, ActionPrototype)
         ActionsGroup.AddActionsFromList(UNCATEGORIZED_ACTIONS, ActionPrototype)
         try:
-          import os
-          with open(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2', 'actions.dat'), 'rb') as f:
-            import pickle
-            MANUALLYUPDATED_ACTIONS = [[eg.ActionGroup, "ManuallyUpdated", "Manually Updated", None, pickle.load(f)]]
+					MANUALLYUPDATED_ACTIONS = [[eg.ActionGroup, "ManuallyUpdated", "Manually Updated", None, readData('actions.dat')]]
         except IOError:
           #eg.PrintError('Failed to open: httpapi.dat')
           pass
@@ -1608,16 +1635,7 @@ class XBMC2(eg.PluginClass):
 							pass
 					#print repr(EGActionList)
 
-					import os
-					if not os.path.exists(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2')):
-					#if not os.path.exists(os.path.join('EventGhost', 'plugins', 'XBMC2')):
-						os.makedirs(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2'))
-						#os.makedirs(os.path.join('EventGhost', 'plugins', 'XBMC2'))
-
-					with open(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2', 'actions.dat'), 'wb') as f:
-					#with open(os.path.join('EventGhost', 'plugins', 'XBMC2', 'actions.dat'), 'wb') as f:
-						import pickle
-						pickle.dump(EGActionList, f, 1)
+					writeData('actions.dat', EGActionList)
 					print 'XBMC2: "Manually added" actions updated, restart EventGhost to use.'
 				def ConnectionTest(event):
 					print "XBMC2: Starting connection test, trying to connect to XBMC using", panel.combo_box_IP.GetValue()
