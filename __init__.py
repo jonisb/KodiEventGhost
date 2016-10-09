@@ -31,7 +31,7 @@ import re
 eg.RegisterPlugin(
     name = "XBMC2",
     author = "Joni Boren",
-    version = "0.6.3e",
+    version = "0.6.3f",
     kind = "program",
     guid = "{8C8B850C-773F-4583-AAD9-A568262B7933}",
     canMultiLoad = True,
@@ -57,7 +57,399 @@ eg.RegisterPlugin(
 )
 
 # from threading import Event, Thread
+def dict_merge(a, b):
+	'''recursively merges dict's. not just simple a['key'] = b['key'], if
+	both a and bhave a key who's value is a dict then dict_merge is called
+	on both values and the result stored in the returned dictionary.'''
+	if not isinstance(b, dict):
+		return b
+	from copy import deepcopy
+	result = deepcopy(a)
+	for k, v in b.iteritems():
+		if k in result and isinstance(result[k], dict):
+			result[k] = dict_merge(result[k], v)
+		else:
+			result[k] = deepcopy(v)
+	return result
+def JSONVerify(Method, json, introspect, MakeSkeleton = False, Verbose = False):
+	import pprint
+	try:
+		def StringToPython2(json):
+			try:
+				import json as JSON
+				#json.dumps
+				try:
+					json = JSON.loads(json)
+				except ValueError:
+					import ast
+					try:
+						json = ast.literal_eval(json)
+					except SyntaxError:
+						try:
+							return {'result': ast.literal_eval("{%s}" % (json)), 'error': False}
+						except (SyntaxError):
+							import sys
+							#print "Unsupported syntax", str(sys.exc_info()[1:2])
+							return {'error': "Unsupported syntax: "+str(sys.exc_info()[1:2])}
+				
+				if type(json) in (dict, list):
+					return {'result': json, 'error': False}
+				elif type(json) is tuple:
+					return {'result': list(json), 'error': False}
+				else:
+					return {'result': [json], 'error': False}
+			except:
+				import sys
+				#print "Unhandled exception", str(sys.exc_info()[1:2])
+				return {'error': "Unhandled exception: "+str(sys.exc_info()[1:2])}
 
+		def StringToPython(json):
+			import ast
+			import json as JSON
+			try:
+				json = JSON.loads(json)
+			except ValueError:
+				pass
+			try:
+				json = ast.literal_eval(json)
+			except ValueError:
+				pass
+			except SyntaxError:
+				json = ast.literal_eval("{%s}" % (json))
+
+			#print type(json), json
+			if type(json) in (dict, list, tuple):
+				#return json
+				return {'result': json, 'error': False}
+			else:
+				#return [json]
+				return {'result': [json], 'error': False}
+
+		def RequiredDefault(param, name, Status):
+			if not MakeSkeleton:
+				try:
+					if param['required']:
+						if Verbose: print "RequiredDefault: missing param", name, param['type']
+						return {'type':param['type'], 'error':'Requred parameter missing'}
+				except KeyError:
+					pass
+				try:
+					param['default']
+					if Verbose: print "RequiredDefault:", name, param['type'], "(default value)", param['default']
+					#Status[name] = ", using default value "+repr(param['default'])
+				except KeyError:
+					#print "RequiredDefault: missing param", name, param['type']
+					#return {name:{'type':param['type'], 'error':'parameter missing'}}
+					pass
+			else:
+				try:
+					param['default']
+					if Verbose: print "RequiredDefault:", name, param['type'], "(default value)", param['default']
+					Skeleton[name] = {'default':param['default']}
+				except KeyError:
+					if not param['type'] in ('array', 'object'):
+						Skeleton[name] = None
+					return False
+			return False
+	
+		def	SubstRef(param):
+			try:
+				ref = param['$ref']
+				del param['$ref']
+				param.update(introspect['types'][ref])
+			except KeyError:
+				pass
+			try:
+				extends = param['extends']
+				del param['extends']
+				param.update(dict_merge(param, introspect['types'][extends]))
+			except KeyError:
+				pass
+			#if Verbose: pprint.pprint(param, indent=4)
+
+		def MinMaxCheck(itemToTest, param, Min, Max, paramList):
+			try:
+				paramList-=set([Min])
+				if itemToTest < param[Min]:
+					if Verbose: print "MinMaxCheck: Value under minimum (%s) with %s" % (param[Min], itemToTest)
+			#		print "Wrong number of items in array (%s) should be minimum (%s)" % (len(itemToTest), param['minItems'])
+			#		print "Value under minimum (%s) with %s" % (param['minimum'], itemToTest)
+					return {'error':'Value under minimum (%s) with %s' % (param[Min], itemToTest)}
+			except KeyError:
+				pass
+			try:
+				paramList-=set([Max])
+				if itemToTest > param[Max]:
+					if Verbose: print "MinMaxCheck: Value over maximum (%s) with %s" % (param[Max], itemToTest)
+			#		print "Value over maximum (%s) with %s" % (param['maximum'], itemToTest)
+					return {'error':'Value over maximum (%s) with %s' % (param[Max], itemToTest)}
+			except KeyError:
+				pass
+			return False
+	
+		def enumsCheck(itemToTest, param, paramList):
+			try:
+				paramList-=set(['enums'])
+				if not itemToTest in param['enums']:
+					#print "enumsCheck:", itemToTest, "not in", param['enums']
+					return {'value':itemToTest, 'error':'Not in enums list'}
+			except KeyError:
+				pass
+			return False
+	
+		def typeCheck(itemToTest, Type, message):
+			if isinstance(itemToTest, Type):
+				return False
+			#if type(itemToTest) is Type
+			#print message
+		
+		def TestArray(itemToTest, param, paramList, Status):
+		#items, additionalItems, minItems, maxItems, uniqueItems, 
+			if MakeSkeleton:
+				Skeleton[name] = {}
+				Skeleton = Skeleton[name]
+			if not isinstance(itemToTest, JSONTypes[param['type']]):
+				return {'type':param['type'], 'value':itemToTest, 'error':'Not right type'}
+			result = MinMaxCheck(len(itemToTest), param, 'minItems', 'maxItems', paramList)
+			if result:
+				result.update({'type':param['type']})
+				return result
+			paramList-=set(['items'])
+			#if Verbose: print "TestArray:", name, param['type'], "of", param['items']['type'], itemToTest
+			for pos, item in enumerate(itemToTest):
+				result = typeFuncList[param['items']['type']](item, param['items'], paramList, Status)
+				if result:
+					#print "Wrong type:", type(item), item
+					return {'type':param['type'], 'items':result}
+				else:
+					try:
+						paramList-=set(['uniqueItems'])
+						if param['uniqueItems']:
+							import collections
+							if list((dup for (dup, i) in collections.Counter(itemToTest).items() if i > 1)):
+								if Verbose: print "TestArray: Only unique items allowed:", list((dup for (dup, i) in collections.Counter(itemToTest).items() if i > 1))
+								return {'type':param['type'], 'error':'Only unique items allowed', 'value': list((dup for (dup, i) in collections.Counter(itemToTest).items() if i > 1))}
+					except KeyError:
+						pass
+					#if Verbose: print "TestArray:", pos, param['items']['type'], itemToTest[pos]
+			return False
+
+		def TestObject(itemToTest, param, paramList, Status):
+		#properties, patternProperties, additionalProperties, dependencies, 
+			if not isinstance(itemToTest, JSONTypes[param['type']]):
+				return {'type':param['type'], 'value':itemToTest, 'error':'Not right type'}
+			try:
+				paramList-=set(['additionalProperties'])
+				SubstRef(param['additionalProperties'])
+				param['additionalProperties']['type']
+				#if Verbose: print "TestObject:", name, param['type'], "of", param['additionalProperties']['type'], itemToTest
+				for item in itemToTest:
+					result = typeFuncList[param['additionalProperties']['type']](itemToTest[item], param['additionalProperties'], paramList, Status)
+					if result:
+						return {'properties': {item: result}}
+			except (KeyError):
+				paramList-=set(['properties'])
+				for prop in param['properties']:
+					SubstRef(param['properties'][prop])
+					try:
+						result = typeFuncList[param['properties'][prop]['type']](itemToTest[prop], param['properties'][prop], paramList, Status)
+						if result: return result
+					except KeyError:
+						result = RequiredDefault(param['properties'][prop], prop, Status)
+						if result: return result
+			except (TypeError):
+				paramList-=set(['properties'])
+				#if Verbose: print "TestObject:", name, param['type'], "of", param['properties'], itemToTest
+				props = set(itemToTest.keys())
+				for prop in param['properties']:
+					SubstRef(param['properties'][prop])
+					try:
+						result = typeFuncList[param['properties'][prop]['type']](itemToTest[prop], param['properties'][prop], paramList, Status)
+						if result:
+							#print "Wrong type:", type(itemToTest[prop]), itemToTest[prop]
+							return result
+						#else:
+							#if Verbose: print "TestObject:", prop, param['properties'][prop]['type'], itemToTest[prop]
+					#except TypeError:
+					except KeyError:
+						result = RequiredDefault(param['properties'][prop], prop, Status)
+						if result:
+							return result
+					props-=set([prop])
+				if props: return {'type':param['type'], 'items':list(props), 'error':'Unknown property'}
+			return False
+
+		def TestBoolean(itemToTest, param, paramList, Status):
+			if not isinstance(itemToTest, JSONTypes[param['type']]):
+				return {'type':param['type'], 'value':itemToTest, 'error':'Not right type'}
+			#if Verbose: print "TestBoolean:", name, param['type'], itemToTest
+			return False
+
+		def TestNumber(itemToTest, param, paramList, Status):
+		#minimum, maximum, exclusiveMinimum, exclusiveMaximum, divisibleBy, 
+			if not isinstance(itemToTest, JSONTypes[param['type']]):
+				return {'type':param['type'], 'value':itemToTest, 'error':'Not right type'}
+			result = enumsCheck(itemToTest, param, paramList)
+			if result:
+				result.update({'type':param['type']})
+				return result
+			result = MinMaxCheck(itemToTest, param, 'minimum', 'maximum', paramList)
+			if result:
+				result.update({'type':param['type']})
+				return result
+			return False
+
+		def TestInteger(itemToTest, param, paramList, Status):
+		#minimum, maximum, exclusiveMinimum, exclusiveMaximum, divisibleBy, 
+			if not isinstance(itemToTest, JSONTypes[param['type']]):
+				return {'type':param['type'], 'value':itemToTest, 'error':'Not right type'}
+			result = enumsCheck(itemToTest, param, paramList)
+			if result:
+				result.update({'type':param['type']})
+				return result
+			result = MinMaxCheck(itemToTest, param, 'minimum', 'maximum', paramList)
+			if result:
+				result.update({'type':param['type']})
+				return result
+			#if Verbose: print "TestInteger:", name, param['type'], itemToTest
+			return False
+
+		def TestString(itemToTest, param, paramList, Status):
+		#pattern, minLength, maxLength, format
+			#result = typeCheck(itemToTest, basestring, "Error: TestString:"+itemToTest)
+			if not isinstance(itemToTest, JSONTypes[param['type']]):
+				return {'type':param['type'], 'value':itemToTest, 'error':'Not right type'}
+			if MakeSkeleton:
+				Skeleton[name] = {'type':param['type']}
+				Skeleton[name] = {'value':itemToTest}
+			result = enumsCheck(itemToTest, param, paramList)
+			if result:
+				result.update({'type':param['type']})
+				return result
+			if MakeSkeleton: Skeleton[name] = {'enums':param['enums']}
+			result = MinMaxCheck(len(itemToTest), param, 'minLength', 'maxLength', paramList)
+			if result:
+				result.update({'type':param['type'], 'value':itemToTest})
+				return result
+			if MakeSkeleton:
+				try:
+					Skeleton[name] = {'minLength':param['minLength']}
+				except KeyError:
+					pass			
+				try:
+					Skeleton[name] = {'maxLength':param['maxLength']}
+				except KeyError:
+					pass			
+				try:
+					Skeleton[name] = {'description':param['description']}
+				except KeyError:
+					pass			
+			#if Verbose: print "TestString:", name, param['type'], itemToTest
+			return False
+
+		def TestNull(itemToTest, param, paramList, Status):
+			if not isinstance(itemToTest, JSONTypes[param['type']]):
+				return {'type':param['type'], 'value':itemToTest, 'error':'Not right type'}
+			return False
+		def TestAny(itemToTest, param, paramList, Status):
+			if not isinstance(itemToTest, JSONTypes[param['type']]):
+				return {'type':param['type'], 'value':itemToTest, 'error':'Not right type'}
+			return False
+
+		import numbers
+		JSONTypes = {'string': basestring, 'boolean': bool, 'integer': int, 'number':numbers.Number, 'array': list, 'object': dict, 'null': type(None), 'any': (basestring, bool, int, numbers.Number, list, dict, type(None)), }
+		typeFuncList={'string':TestString, 'integer':TestInteger, 'number':TestNumber, 'boolean':TestBoolean, 'array':TestArray, 'object':TestObject, 'null':TestNull, 'any':TestAny}
+		def TestType(itemToTest, params, paramList):
+			results = {'type':[]}
+			for param in params['type']:
+				SubstRef(param)
+				try:
+					#print "TestType:", param, param['type'], params['name']
+					result = typeFuncList[param['type']](itemToTest, param, paramList, Status)
+					if not result:
+						if Verbose: print "TestType:", params['name'], param['type'], itemToTest
+						return False
+					results['type'].append(param['type'])
+					try:
+						del result['type']
+					except KeyError:
+						pass
+					try:
+						del results['error']
+					except KeyError:
+						pass					
+					results.update(result)
+				except KeyError:
+					if Verbose: print "typeFuncList missing", param['type']
+			#if Verbose: print "Wrong type", itemToTest, "Should be", params['type']
+			#result.update({'name':params['name'], 'type':params['type']})
+			#results.update({'error':'Wrong type', 'value':itemToTest})
+			return results
+	
+		def Test(itemToTest, param):
+			paramList=set(param.keys())
+			#if Verbose: print param['name'],
+			try:
+				result = typeFuncList[param['type']](itemToTest, param, paramList, Status)
+				if result:
+					#result.update({'name':param['name']})
+					return result
+				if Verbose: print "Test:", param['name'], param['type'], itemToTest
+			except TypeError:
+				result = TestType(itemToTest, param, paramList)
+				if result:
+					#print "Error: Test"
+					return result
+			#set("disallow", "$schema")
+			paramList-=set(["name", "type", "title", "description", "id", "default", "required"])			
+			if paramList:
+				if Verbose: print paramList
+				return {'error':paramList}
+			return False
+	
+		result = StringToPython(json)
+		if not result['error']:
+			json = result['result']
+			print "Is right?", json
+			Status = {'result': True}
+			#Skeleton = {}
+			if Verbose: print
+			if Verbose: pprint.pprint(json, indent=4)
+			if type(json) in (dict, list):
+				if len(json) <= len(introspect['methods'][Method]['params']):
+					if Verbose: print {dict:"By name", list:"By position"}[type(json)]
+					for pos, param in enumerate(introspect['methods'][Method]['params']):
+						SubstRef(param)
+						try:
+							result = Test(json[{dict:param['name'], list:pos}[type(json)]], param)
+							if result:
+								Status['error'] = {param['name']:result}
+								Status['result'] = False					
+							if not MakeSkeleton:
+								if not Status['result']: break
+						except (KeyError, IndexError):
+							result = RequiredDefault(param, param['name'], Status)
+							if result:
+								Status['error'] = {param['name']:result}
+								Status['result'] = False					
+							if not MakeSkeleton:
+								if not Status['result']: break
+				else:
+					if Verbose: print "Wrong number of parameters (%s) should be less or eqwal to %s" % (len(json), len(introspect['methods'][Method]['params']))
+					Status['result'] = False
+			else:
+				if Verbose: print "Unsupported:", type(json)
+				Status['result'] = False
+		else:
+			Status = {'result': False}
+			Status['error'] = result['error']
+		if not Status['result']: pprint.pprint(introspect['methods'][Method]['params'], indent=4)
+		#if MakeSkeleton: Status['Skeleton'] = Skeleton
+		return Status
+	except:
+		import sys
+		pprint.pprint(introspect['methods'][Method]['params'], indent=4)
+		return {'error': 'Something bad happened: '+str(sys.exc_info()[1:2])}
 # Windows availible in XBMC.  For a list of all actions see: http://xbmc.org/wiki/?title=Window_IDs
 """
 """
@@ -918,6 +1310,7 @@ class JSONRPC(eg.ActionClass):
 			Methods = {'No namespaces':['No methods']}
 			Descriptions = {'No namespaces':['']}
 		jsonrpc = record()
+		responce = {}
 		def OnUpdate(event):
 			UpdateMethods()
 			try:
@@ -958,6 +1351,8 @@ class JSONRPC(eg.ActionClass):
 								os.makedirs(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2'))
 							with open(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2', 'jsonrpc.dat'), 'wb') as f:
 								pickle.dump((jsonrpc.Namespaces, jsonrpc.Methods, jsonrpc.Descriptions), f, 1)
+							with open(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2', 'introspect.dat'), 'wb') as f:
+								pickle.dump(responce, f, 1)
 							return False
 						elif responce.has_key('error'):
 #					print 'Error', responce['error']
@@ -1006,11 +1401,24 @@ class JSONRPC(eg.ActionClass):
 			if event.GetEventObject() == comboBoxControl:
 				description.SetLabel(jsonrpc.Descriptions[jsonrpc.Namespaces[HBoxControl.GetSelection()]][event.GetSelection()])
 				description.Wrap(480)
+				error.SetLabel(repr(JSONVerify(HBoxControl.GetValue()+'.'+comboBoxControl.GetValue(), textControl2.GetValue(), responce['result'], False, True)))
 			else:
 				UpdateMethodCtrl(event.GetSelection())
 #				comboBoxControl.Clear()
 #				for i in jsonrpc.Methods[jsonrpc.Namespaces[event.GetSelection()]]:
 #					comboBoxControl.Append(i)
+		def OnJSONChange(event):
+			if event.GetEventObject() == textControl2:
+				#JSONVerify(Method, json, MakeSkeleton = False, Verbose = False)
+				try:
+					#print responce['result']
+					error.SetLabel(repr(JSONVerify(HBoxControl.GetValue()+'.'+comboBoxControl.GetValue(), textControl2.GetValue(), responce['result'], False, True)))
+				except:
+					error.SetLabel('Syntax error?')
+					import sys
+					print str(sys.exc_info()[1:2])
+
+				#description.Wrap(480)
 
 		panel = eg.ConfigPanel()
 		try:
@@ -1019,9 +1427,17 @@ class JSONRPC(eg.ActionClass):
 		except IOError:
 #			print 'Error opening: jsonrpc.dat'
 			eg.PrintError('Error opening: jsonrpc.dat')
+		try:
+			with open(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2', 'introspect.dat'), 'rb') as f:
+				responce = pickle.load(f)
+			#print responce['result']
+		except IOError:
+			eg.PrintError('Error opening: introspect.dat')
 		HBoxControl = wx.ComboBox(panel, -1, value=method[:method.find('.')], choices=jsonrpc.Namespaces, style=wx.CB_READONLY)
 		comboBoxControl = wx.ComboBox(panel, -1, value=method[method.find('.')+1:], choices=jsonrpc.Methods[jsonrpc.Namespaces[HBoxControl.GetSelection()]] , style=wx.CB_READONLY)
 		textControl2 = wx.TextCtrl(panel, -1, param, size=(500, -1))
+		error = wx.StaticText(panel, -1, repr(JSONVerify(HBoxControl.GetValue()+'.'+comboBoxControl.GetValue(), textControl2.GetValue(), responce['result'], False, True)))
+		
 		Category = wx.BoxSizer(wx.HORIZONTAL)
 		Category.Add(wx.StaticText(panel, -1, "Namespace"))
 		Category.Add(HBoxControl)
@@ -1030,6 +1446,7 @@ class JSONRPC(eg.ActionClass):
 		panel.sizer.Add(wx.StaticText(panel, -1, "Choose a JSON-RPC Method and add any parameter(s)"))
 		panel.sizer.Add(Category)
 		panel.sizer.Add(textControl2)
+		panel.sizer.Add(error)
 		panel.sizer.Add(wx.StaticBox(panel, -1, 'Method description:', size=(500, 150)))
 		if (comboBoxControl.GetSelection() != -1):
 			description = wx.StaticText(panel, -1, jsonrpc.Descriptions[jsonrpc.Namespaces[HBoxControl.GetSelection()]][comboBoxControl.GetSelection()], (5, 70), style=wx.ALIGN_LEFT)
@@ -1045,6 +1462,7 @@ class JSONRPC(eg.ActionClass):
 		Bottom.Add(UpdateButton,0,wx.LEFT,280)
 		panel.sizer.Add(Bottom)
 		panel.Bind(wx.EVT_COMBOBOX, OnMethodChange)
+		textControl2.Bind(wx.EVT_TEXT, OnJSONChange)
 		while panel.Affirmed():
 			panel.SetResult(HBoxControl.GetValue()+'.'+comboBoxControl.GetValue(), textControl2.GetValue(), CheckBox.GetValue())
 
