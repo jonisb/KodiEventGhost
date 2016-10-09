@@ -33,7 +33,7 @@ from threading import Event, Thread
 eg.RegisterPlugin(
     name = "XBMC2",
     author = "Joni Boren",
-    version = "0.6.13",
+    version = "0.6.14",
     kind = "program",
     guid = "{8C8B850C-773F-4583-AAD9-A568262B7933}",
     canMultiLoad = True,
@@ -1133,6 +1133,15 @@ class JSONRPC(eg.ActionClass):
 		panel.sizer.Add(Bottom)
 		panel.Bind(wx.EVT_COMBOBOX, OnMethodChange)
 		while panel.Affirmed():
+			if 'jsonrpc' in json.loads(textControl2.GetValue()):
+				namespaceTemp, methodTemp = json.loads(textControl2.GetValue())['method'].split('.')
+				HBoxControl.SetValue(namespaceTemp)
+				comboBoxControl.Clear()
+				for i in jsonrpc.Methods[jsonrpc.Namespaces[HBoxControl.GetSelection()]]:
+					comboBoxControl.Append(i)
+				comboBoxControl.SetValue(methodTemp)
+				textControl2.SetValue(json.dumps(json.loads(textControl2.GetValue())['params']))
+
 			panel.SetResult(HBoxControl.GetValue()+'.'+comboBoxControl.GetValue(), textControl2.GetValue(), CheckBox.GetValue())
 
 #class StopRepeating(eg.ActionClass):
