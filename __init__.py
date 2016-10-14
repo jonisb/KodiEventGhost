@@ -1582,9 +1582,12 @@ class XBMC2(eg.PluginClass):
 
 							return text
 
+						UserAgent = 'XBMC2 EventGhost plugin'
 						URL = 'http://wiki.xbmc.org/?title=Action_IDs'
 						#URL = 'http://kodi.wiki/view/Action_IDs'
-						request = urllib2.Request(URL)
+						hdr = {'User-Agent': UserAgent}
+
+						request = urllib2.Request(URL, headers=hdr)
 						w = urllib2.urlopen(request)
 
 						Page2 = w.read()
