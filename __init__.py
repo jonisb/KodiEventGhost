@@ -56,6 +56,7 @@ except ImportError:
         raise
 logger.info('Importing "OrderedDict" module, done.')
 
+
 def DefaultSettings(Data=None):
     """ """  # TODO
     if isinstance(Data, KodiLib.SettingsClass):
@@ -73,6 +74,7 @@ def DefaultSettings(Data=None):
     if Data != None:
         Settings.addData(Data)
     return Settings
+
 
 class Kodi(eg.PluginClass):
     """ """  # TODO
