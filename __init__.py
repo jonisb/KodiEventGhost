@@ -6,8 +6,8 @@ from __future__ import print_function, unicode_literals, division, absolute_impo
 
 import eg
 
-import logging # ToDo: Move after eg.RegisterPlugin()?
-logger = logging.getLogger(__name__) # ToDo: Move after eg.RegisterPlugin()?
+import logging # TODO: Move after eg.RegisterPlugin()?
+logger = logging.getLogger(__name__) # TODO: Move after eg.RegisterPlugin()?
 
 import KodiLib
 
@@ -17,14 +17,14 @@ eg.RegisterPlugin(
     author = "Joni Borén",
     version = "0.7.0",
     kind = "program",
-    guid = "{8C8B850C-773F-4583-AAD9-A568262B7934}", # ToDo: change guid.
+    guid = "{8C8B850C-773F-4583-AAD9-A568262B7934}", # TODO: change guid.
     canMultiLoad = True,
     createMacrosOnAdd = False,
-    url = "http://www.eventghost.net/forum/viewtopic.php?f=10&t=1562", # ToDo: usenew url?.
+    url = "http://www.eventghost.net/forum/viewtopic.php?f=10&t=1562", # TODO: usenew url?.
     description = """Adds actions/buttons to control <a href='http://www.kodi.org/'>Kodi</a>.
 
-Test description.""", # ToDo: Add description, use <rst>?
-    icon = ( # ToDo: check/change icon.
+Test description.""", # TODO: Add description, use <rst>?
+    icon = ( # TODO: check/change icon.
             "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAAsRAAALEQF/ZF+RAAAA"
             "BGdBTUEAALGeYUxB9wAAACBjSFJNAAB6fAAAfosAAPoBAACHPAAAbUoAAPFDAAA2IAAAHlNX4WK7"
             "AAACYElEQVR42tTTPW8ScQDH8d/9n44HESgFKQjFWku1rUYdTEAT0sGHSU10cHZz0piYjqYxbia6"
@@ -56,7 +56,7 @@ except ImportError:
 logger.info('Importing "OrderedDict" module, done.')
 
 def DefaultSettings(Data=None):
-    """ """ # Todo
+    """ """ # TODO
     if isinstance(Data, KodiLib.SettingsClass):
         Settings = Data
         Data = None
@@ -74,33 +74,33 @@ def DefaultSettings(Data=None):
     return Settings
 
 class Kodi(eg.PluginClass):
-    """ """ # Todo
-    def __init__(self): # ToDo:
-        """ """ # Todo
+    """ """ # TODO
+    def __init__(self): # TODO:
+        """ """ # TODO
         pass
 
-    #def __start__(self, pluginConfig, *args): # ToDo:
-    def __start__(self, pluginSettings): # ToDo:
-        """ """ # Todo
+    #def __start__(self, pluginConfig, *args): # TODO:
+    def __start__(self, pluginSettings): # TODO:
+        """ """ # TODO
         print(pluginSettings['client']['name'])
         pass
 
-    def __stop__(self): # ToDo:
-        """ """ # Todo
+    def __stop__(self): # TODO:
+        """ """ # TODO
         pass
 
-    def __close__(self): # ToDo:
-        """ """ # Todo
+    def __close__(self): # TODO:
+        """ """ # TODO
         pass
 
     #def Configure(self, pluginConfig=None, *args):
     def Configure(self, pluginSettings=None):
-        """ """ # Todo
+        """ """ # TODO
         pluginSettings = DefaultSettings(pluginSettings)
 
         class test(object):
             def __init__(self, Item):
-                """ """ # Todo
+                """ """ # TODO
                 self.Item = Item
 
             def GetItem(self):
@@ -123,7 +123,7 @@ class Kodi(eg.PluginClass):
 
             def _addNodeToSchema(self, event):
                 def ChangeValue(Item):
-                    """ """ # Todo
+                    """ """ # TODO
                     setting = self.GetItemText(Item).split(' = ')[0]
                     myDlg = wx.TextEntryDialog(self, setting, "Change value", self.GetPyData(Item))
                     res = myDlg.ShowModal()
