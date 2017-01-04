@@ -14,18 +14,18 @@ logger = logging.getLogger(__name__)  # TODO: Move after eg.RegisterPlugin()?
 
 logger.critical('Register plugin with EventGhost.')
 eg.RegisterPlugin(
-    name = "Kodi",
-    author = "Joni Borén",
-    version = "0.7.0",
-    kind = "program",
-    guid = "{8C8B850C-773F-4583-AAD9-A568262B7934}",  # TODO: change guid.
-    canMultiLoad = True,
-    createMacrosOnAdd = False,
-    url = "http://www.eventghost.net/forum/viewtopic.php?f=10&t=1562",  # TODO: usenew url?.
-    description = """Adds actions/buttons to control <a href='http://www.kodi.org/'>Kodi</a>.
+    name="Kodi",
+    author="Joni Borén",
+    version="0.7.0",
+    kind="program",
+    guid="{8C8B850C-773F-4583-AAD9-A568262B7934}",  # TODO: change guid.
+    canMultiLoad=True,
+    createMacrosOnAdd=False,
+    url="http://www.eventghost.net/forum/viewtopic.php?f=10&t=1562",  # TODO: usenew url?.
+    description="""Adds actions/buttons to control <a href='http://www.kodi.org/'>Kodi</a>.
 
 Test description.""",  # TODO: Add description, use <rst>?
-    icon = (  # TODO: check/change icon.
+    icon=(  # TODO: check/change icon.
             "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAAsRAAALEQF/ZF+RAAAA"
             "BGdBTUEAALGeYUxB9wAAACBjSFJNAAB6fAAAfosAAPoBAACHPAAAbUoAAPFDAAA2IAAAHlNX4WK7"
             "AAACYElEQVR42tTTPW8ScQDH8d/9n44HESgFKQjFWku1rUYdTEAT0sGHSU10cHZz0piYjqYxbia6"
