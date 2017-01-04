@@ -6,10 +6,11 @@ from __future__ import print_function, unicode_literals, division, absolute_impo
 
 import eg
 
-import logging  # TODO: Move after eg.RegisterPlugin()?
-logger = logging.getLogger(__name__)  # TODO: Move after eg.RegisterPlugin()?
-
 import KodiLib
+
+import logging  # TODO: Move after eg.RegisterPlugin()?
+
+logger = logging.getLogger(__name__)  # TODO: Move after eg.RegisterPlugin()?
 
 logger.critical('Register plugin with EventGhost.')
 eg.RegisterPlugin(
