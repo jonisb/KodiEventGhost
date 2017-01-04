@@ -1,4 +1,7 @@
-﻿# Support for controlling Kodi from EventGhost.
+﻿[![Code Climate](https://codeclimate.com/github/jonisb/KodiEventGhost/badges/gpa.svg)](https://codeclimate.com/github/jonisb/KodiEventGhost)
+[![Issue Count](https://codeclimate.com/github/jonisb/KodiEventGhost/badges/issue_count.svg)](https://codeclimate.com/github/jonisb/KodiEventGhost)
+
+# Support for controlling Kodi from EventGhost.
 
 ### Support modules needed:
 - KodiLib.py from https://github.com/jonisb/KodiLib
