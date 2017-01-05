@@ -7,7 +7,7 @@ from __future__ import print_function, unicode_literals, division, absolute_impo
 import eg
 
 import KodiLib
-import SSDPLib # ToDo: Move after eg.RegisterPlugin()?
+import SSDPLib  # ToDo: Move after eg.RegisterPlugin()?
 
 import logging  # TODO: Move after eg.RegisterPlugin()?
 
@@ -107,6 +107,7 @@ class Kodi(eg.PluginClass):
 
         myEVT_SSDPResult = wx.NewEventType()
         EVT_SSDPResult = wx.PyEventBinder(myEVT_SSDPResult, 1)
+
         class SSDPResultEvent(wx.PyCommandEvent):
             """Event to signal that a count value is ready"""
             def __init__(self, etype, eid, value=None):
@@ -138,7 +139,7 @@ class Kodi(eg.PluginClass):
 
         class SSDPSearchDialog(wx.Dialog):
             def __init__(self, parent, title):
-                super(SSDPSearchDialog, self).__init__(parent, title = title, size = (500,150))
+                super(SSDPSearchDialog, self).__init__(parent, title=title, size=(500, 150))
                 self.list_ctrl_1 = wx.ListCtrl(self, wx.ID_ANY, style=wx.LC_REPORT | wx.LC_SINGLE_SEL | wx.SUNKEN_BORDER)
                 self.list_ctrl_1.InsertColumn(0, 'FriendlyName')
                 self.list_ctrl_1.InsertColumn(1, 'Name')
