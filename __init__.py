@@ -216,12 +216,15 @@ class Kodi(eg.PluginClass):
             res = SSDPSearch.ShowModal()
             if res == wx.ID_OK:
                 value = SSDPSearch.list_ctrl_1.GetFirstSelected()
-                self.Settings['server']['network']['address'] = SSDPSearch.ListCtrlData[value]['ip']
-                self.Settings['server']['network']['http']['port'] = SSDPSearch.ListCtrlData[value]['port']
-                self.Settings['server']['friendlyName'] = SSDPSearch.ListCtrlData[value]['friendlyName']
-                self.Settings['server']['name'] = SSDPSearch.ListCtrlData[value]['name']
-                self.Settings['server']['version'] = SSDPSearch.ListCtrlData[value]['version']
-                self.Settings['server']['network']['upnp']['id'] = SSDPSearch.ListCtrlData[value]['id']
+                server = self.Settings['server']
+                network = server['network']
+                ListCtrlData = SSDPSearch.ListCtrlData[value]
+                network['address'] = ListCtrlData['ip']
+                network['http']['port'] = ListCtrlData['port']
+                server['friendlyName'] = ListCtrlData['friendlyName']
+                server['name'] = ListCtrlData['name']
+                server['version'] = ListCtrlData['version']
+                network['upnp']['id'] = ListCtrlData['id']
             SSDPSearch.Destroy()
             logger.info('OnButton ends.')
 
