@@ -1543,7 +1543,7 @@ class XBMC2(eg.PluginClass):
     def Configure(self, pluginConfig={}, *args):
 				def UpdateActions(event):
 					def GetActions():
-						URL = 'https://raw.githubusercontent.com/xbmc/xbmc/master/xbmc/input/ButtonTranslator.cpp'
+						URL = 'https://raw.githubusercontent.com/xbmc/xbmc/Krypton/xbmc/input/ButtonTranslator.cpp'
 						request = urllib2.Request(URL)
 						#try:
 						w = urllib2.urlopen(request)
@@ -1583,8 +1583,7 @@ class XBMC2(eg.PluginClass):
 							return text
 
 						UserAgent = 'XBMC2 EventGhost plugin'
-						URL = 'http://wiki.xbmc.org/?title=Action_IDs'
-						#URL = 'http://kodi.wiki/view/Action_IDs'
+						URL = 'http://kodi.wiki/view/Action_IDs'
 						hdr = {'User-Agent': UserAgent}
 
 						request = urllib2.Request(URL, headers=hdr)
