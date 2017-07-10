@@ -1185,7 +1185,7 @@ def readData(filename):
 			print "Reading:", filename
 			return pickle.load(f)
 	except IOError:
-		eg.PrintError('XBMC2: Error opening: ' + filename)
+		#eg.PrintError('XBMC2: Error opening: ' + filename)
 		raise
 
 def writeData(filename, data):
