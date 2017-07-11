@@ -702,7 +702,10 @@ class BuiltInFunctions(eg.ActionBase):
 					return text
 
 				URL = 'http://kodi.wiki/view/List_of_built-in_functions'
-				request = urllib2.Request(URL)
+				UserAgent = 'XBMC2 EventGhost plugin'
+				hdr = {'User-Agent': UserAgent}
+
+				request = urllib2.Request(URL, headers=hdr)
 				try:
 					w = urllib2.urlopen(request)
 				except (urllib2.HTTPError, urllib2.URLError):
