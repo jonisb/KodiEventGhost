@@ -2067,7 +2067,7 @@ class XBMC2(eg.PluginClass):
 											for modelName in doc.getElementsByTagName("modelName"):
 												if modelName.firstChild.data in ('Kodi', 'XBMC Media Center', 'XBMC'):
 													if debug:
-														with open(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2', 'ssdp.log'), 'a') as f:
+														with open(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2', 'ssdp.log'), 'a+') as f:
 															f.write(data)
 															f.write(urllib2.urlopen(headers['LOCATION']).read())
 														print 'XBMC2: SSDP modelName:', modelName.firstChild.data
@@ -2093,7 +2093,7 @@ class XBMC2(eg.PluginClass):
 															XBMCDetected = True
 												else:
 													if debug:
-														with open(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2', 'ssdp.log'), 'a') as f:
+														with open(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2', 'ssdp.log'), 'a+') as f:
 															f.write(data)
 															f.write(urllib2.urlopen(headers['LOCATION']).read())
 														print 'XBMC2: SSDP unknown modelName:', modelName.firstChild.data
