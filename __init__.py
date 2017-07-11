@@ -35,7 +35,7 @@ from threading import Event, Thread
 eg.RegisterPlugin(
     name = "XBMC2",
     author = "Joni Boren",
-    version = "0.6.34",
+    version = "0.6.35",
     kind = "program",
     guid = "{8C8B850C-773F-4583-AAD9-A568262B7933}",
     canMultiLoad = True,
