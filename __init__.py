@@ -2008,7 +2008,7 @@ class XBMC2(eg.PluginClass):
 				_PacketSize = 4096
 				Buffer = deque()
 				rlist = [Socket, ]
-				while True:
+				while not stopJSONRPCNotifications.isSet():
 					if Buffer:
 						ready, _, _ = select.select(rlist, [], [], 0)
 						if ready:
