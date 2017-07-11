@@ -2023,8 +2023,12 @@ class XBMC2(eg.PluginClass):
 							data = Socket.recv(_PacketSize)
 						except socket.timeout:
 							#logging.debug('SSDPListener: Wait for event: Timeout.')
+							if debug:
+								print 'XBMC2: SSDP: Wait for event: Timeout.'
 							continue
 					Buffer.append(data)
+				if debug:
+					print 'XBMC2: SSDP: Wait for event: Stop recieving messages.'
 
 			def WaitForXBMC(Socket):
 				USNCache = []
@@ -2049,6 +2053,9 @@ class XBMC2(eg.PluginClass):
 						continue
 					else:
 						try:
+							if debug:
+								with open(os.path.join(eg.folderPath.RoamingAppData, 'EventGhost', 'plugins', 'XBMC2', 'ssdp.log'), 'a+') as f:
+									f.write("Got ssdp message.")
 							if "NOTIFY * HTTP/1.1" == headers['Start-line']:
 								try:
 									if headers['USN'].split(':', 2)[1] not in USNCache:
