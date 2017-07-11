@@ -2182,8 +2182,8 @@ class XBMC2(eg.PluginClass):
 								messages = [json.loads(message)]
 							except:
 								#eg.PrintError('XBMC2: Error: JSON-RPC event ')
-								import sys, traceback
-								traceback.print_exc()
+								#import sys, traceback
+								#traceback.print_exc()
 								#eg.PrintError('XBMC2: Error decoding: JSON-RPC event \n' + "Raw event: %s" % repr(message))
 								#continue
 								messages = JSONSplit(message)
