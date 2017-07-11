@@ -2045,6 +2045,8 @@ class XBMC2(eg.PluginClass):
 						if debug:
 							print 'XBMC2: SSDP: Wait for event: Timeout.'
 						pass
+					except StopIteration:
+						continue
 					else:
 						try:
 							if "NOTIFY * HTTP/1.1" == headers['Start-line']:
