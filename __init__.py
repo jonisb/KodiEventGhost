@@ -45,20 +45,10 @@ Test description.""",  # TODO: Add description, use <rst>?
 )
 logger.critical('Finished registering plugin with EventGhost.')
 
-logger.info('Importing "OrderedDict" module.')
-try:
-    from collections import OrderedDict
-except ImportError:
-    logger.warning('Failed to import "OrderedDict" module, trying local module.')
-    try:
-        from .ordereddict import OrderedDict
-    except ImportError:
-        logger.exception('Failed to import local "OrderedDict" module, aborting.')
-        raise
-logger.info('Importing "OrderedDict" module, done.')
-
 import types
 import threading
+
+from pythoncompat import OrderedDict
 
 
 def DefaultSettings(Data=None):
