@@ -82,7 +82,6 @@ class Kodi(eg.PluginClass):
 
     def __start__(self, pluginSettings):  # TODO:
         """ """  # TODO
-        print(pluginSettings['client']['name'])
         pluginSettings['client']['cache path'] = self.cachepath
         pluginSettings['client']['network']['User-Agent'] = self.useragent
 
