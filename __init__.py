@@ -60,6 +60,10 @@ def DefaultSettings(Data=None):
     Settings.addDefault([
         ('client', [
             ('name', eg.APP_NAME),
+            ('icon', [
+                ('url', "http://www.eventghost.net/images/logo_small.png"),
+                ('type', 'png'),
+            ]),
         ]),
     ])
 
