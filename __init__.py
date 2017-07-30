@@ -84,10 +84,16 @@ class Kodi(eg.PluginClass):
         """ """  # TODO
         pluginSettings['client']['cache path'] = self.cachepath
         pluginSettings['client']['network']['User-Agent'] = self.useragent
+        self.Kodi = KodiLib.kodi(pluginSettings)
+        try:
+            self.Kodi.connect()
+        except Exception:
+            logger.exception("")
+            eg.PrintError("Can't connect") # TODO:
 
     def __stop__(self):  # TODO:
         """ """  # TODO
-        pass
+        del self.Kodi
 
     def __close__(self):  # TODO:
         """ """  # TODO
