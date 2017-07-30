@@ -39,6 +39,7 @@ Test description.""",  # TODO: Add description, use <rst>?
     ),
 )
 
+import os
 import types
 import threading
 import logging
@@ -76,12 +77,14 @@ class Kodi(eg.PluginClass):
     """ """  # TODO
     def __init__(self):  # TODO:
         """ """  # TODO
-        pass
+        self.cachepath = os.path.join(eg.configDir, 'plugins', self.info.name)
+        self.useragent = "{0}/{1} {2}-plugin/{3} {4}".format(eg.APP_NAME, eg.Version.string, self.info.name, self.info.version, KodiLib.DefaultSettings()['client']['network']['User-Agent'])
 
     def __start__(self, pluginSettings):  # TODO:
         """ """  # TODO
         print(pluginSettings['client']['name'])
-        pass
+        pluginSettings['client']['cache path'] = self.cachepath
+        pluginSettings['client']['network']['User-Agent'] = self.useragent
 
     def __stop__(self):  # TODO:
         """ """  # TODO
@@ -94,6 +97,9 @@ class Kodi(eg.PluginClass):
     def Configure(self, pluginSettings=None):
         """ """  # TODO
         pluginSettings = DefaultSettings(pluginSettings)
+
+        pluginSettings['client']['cache path'] = self.cachepath
+        pluginSettings['client']['network']['User-Agent'] = self.useragent
 
         myEVT_SSDPResult = wx.NewEventType()
         EVT_SSDPResult = wx.PyEventBinder(myEVT_SSDPResult, 1)
