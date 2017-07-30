@@ -208,7 +208,7 @@ class Kodi(eg.PluginClass):
                 server['name'] = ListCtrlData['name']
                 server['version'] = ListCtrlData['version']
                 network = server['network']
-                network['address'] = ListCtrlData['ip']
+                network['ip'] = ListCtrlData['ip']
                 network['http']['port'] = ListCtrlData['port']
                 network['upnp']['id'] = ListCtrlData['id']
             SSDPSearch.Destroy()
