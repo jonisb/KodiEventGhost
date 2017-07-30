@@ -7,13 +7,8 @@ from __future__ import print_function, unicode_literals, division, absolute_impo
 import eg
 
 import KodiLib
-import SSDPLib  # ToDo: Move after eg.RegisterPlugin()?
+import SSDPLib
 
-import logging  # TODO: Move after eg.RegisterPlugin()?
-
-logger = logging.getLogger(__name__)  # TODO: Move after eg.RegisterPlugin()?
-
-logger.critical('Register plugin with EventGhost.')
 eg.RegisterPlugin(
     name="Kodi",
     author="Joni Borén",
@@ -43,12 +38,14 @@ Test description.""",  # TODO: Add description, use <rst>?
             "RK5CYII="
     ),
 )
-logger.critical('Finished registering plugin with EventGhost.')
 
 import types
 import threading
+import logging
 
 from pythoncompat import OrderedDict
+
+logger = logging.getLogger(__name__)
 
 
 def DefaultSettings(Data=None):
