@@ -76,7 +76,6 @@ class Kodi(eg.PluginClass):
         """ """  # TODO
         pass
 
-    #def __start__(self, pluginConfig, *args):  # TODO:
     def __start__(self, pluginSettings):  # TODO:
         """ """  # TODO
         print(pluginSettings['client']['name'])
@@ -90,7 +89,6 @@ class Kodi(eg.PluginClass):
         """ """  # TODO
         pass
 
-    #def Configure(self, pluginConfig=None, *args):
     def Configure(self, pluginSettings=None):
         """ """  # TODO
         pluginSettings = DefaultSettings(pluginSettings)
@@ -327,5 +325,4 @@ class Kodi(eg.PluginClass):
         initPage(panel.AdvancedPanel)
 
         while panel.Affirmed():
-            #panel.SetResult(Settings)
             panel.SetResult(pluginSettings)
