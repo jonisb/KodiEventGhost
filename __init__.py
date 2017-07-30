@@ -59,9 +59,10 @@ def DefaultSettings(Data=None):
 
     Settings.addDefault([
         ('client', [
-            ('name', 'EventGhost')
+            ('name', eg.APP_NAME),
         ]),
     ])
+
     if Data != None:
         Settings.addData(Data)
     return Settings
