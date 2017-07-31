@@ -73,12 +73,77 @@ def DefaultSettings(Data=None):
     return Settings
 
 
+class BuiltInAction(eg.ActionBase):
+    name = "Action" # TODO: Decide name
+    description = "Run any <a href='http://kodi.wiki/view/Action_IDs'>Kodi action</a>" # TODO: Decide how to handle.
+
+    def __call__(self, action):
+        self.plugin.Kodi.eventclient.send_action(action)
+
+    def Configure(self, action="Info"):
+        #BuiltInActionList = self.plugin.Kodi.GetCommands("actions")
+
+        def OnFunctionChange(event):
+            if event.GetEventObject() == panel.combo_box_category:
+                panel.combo_box_function.Clear()
+                for action in BuiltInActionList(panel.combo_box_category.GetValue()):
+                    panel.combo_box_function.Append(action)
+
+            elif event.GetEventObject() == panel.combo_box_function:
+                panel.label_description.SetLabel(BuiltInActionList[panel.combo_box_category.GetValue()][panel.combo_box_function.GetValue().lower()]['description'])
+
+        def initPanel(self):
+            category = BuiltInActionList['All'][action.lower()]['category']
+
+            self.combo_box_category = wx.ComboBox(self, wx.ID_ANY, value=category, choices=BuiltInActionList.keys(), style=wx.CB_READONLY)
+            self.combo_box_function = wx.ComboBox(self, wx.ID_ANY, value=action, choices=BuiltInActionList(category), style=wx.CB_READONLY)
+            self.sizer_function_staticbox = wx.StaticBox(self, wx.ID_ANY, "Action")
+            self.label_description = wx.TextCtrl(self, wx.ID_ANY, BuiltInActionList[category][action.lower()]['description'], style=wx.TE_MULTILINE | wx.TE_READONLY | wx.BORDER_NONE | wx.TE_RICH)
+            self.sizer_description_staticbox = wx.StaticBox(self, wx.ID_ANY, "Description")
+            self.button_update = wx.Button(self, wx.ID_ANY, "Update")
+
+            setPanelProperties(self)
+            doPanelLayout(self)
+
+            self.Bind(wx.EVT_COMBOBOX, OnFunctionChange, self.combo_box_category)
+            self.Bind(wx.EVT_COMBOBOX, OnFunctionChange, self.combo_box_function)
+            #self.button_update.Bind(wx.EVT_BUTTON, OnUpdate)
+
+        def setPanelProperties(self):
+            self.button_update.SetToolTipString('Update "BuiltInActions" from Kodis website.')
+
+        def doPanelLayout(self):
+            sizer_main = wx.BoxSizer(wx.VERTICAL)
+            self.sizer_description_staticbox.Lower()
+            sizer_description = wx.StaticBoxSizer(self.sizer_description_staticbox, wx.HORIZONTAL)
+            sizer_functionparameter = wx.BoxSizer(wx.HORIZONTAL)
+            self.sizer_function_staticbox.Lower()
+            sizer_function = wx.StaticBoxSizer(self.sizer_function_staticbox, wx.HORIZONTAL)
+            sizer_function.Add(self.combo_box_category, 0, 0, 0)
+            sizer_function.Add(self.combo_box_function, 0, 0, 0)
+            sizer_functionparameter.Add(sizer_function, 0, 0, 0)
+            sizer_main.Add(sizer_functionparameter, 0, wx.EXPAND, 0)
+            sizer_description.Add(self.label_description, 1, wx.EXPAND, 0)
+            sizer_main.Add(sizer_description, 1, wx.EXPAND, 0)
+            sizer_main.Add(self.button_update, 0, wx.ALIGN_RIGHT, 0)
+            self.sizer.Add(sizer_main, 1, wx.EXPAND, 0)
+
+        panel = eg.ConfigPanel()
+
+        BuiltInActionList = self.plugin.Kodi.GetCommands("actions")
+        initPanel(panel)
+
+        while panel.Affirmed():
+            panel.SetResult(panel.combo_box_function.GetValue())
+
 class Kodi(eg.PluginClass):
     """ """  # TODO
     def __init__(self):  # TODO:
         """ """  # TODO
         self.cachepath = os.path.join(eg.configDir, 'plugins', self.info.name)
         self.useragent = "{0}/{1} {2}-plugin/{3} {4}".format(eg.APP_NAME, eg.Version.string, self.info.name, self.info.version, KodiLib.DefaultSettings()['client']['network']['User-Agent'])
+
+        self.AddAction(BuiltInAction)
 
     def __start__(self, pluginSettings):  # TODO:
         """ """  # TODO
