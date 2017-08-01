@@ -100,6 +100,23 @@ class BuiltInAction(eg.ActionBase):
             elif event.GetEventObject() == panel.combo_box_function:
                 panel.label_description.SetLabel(BuiltInActionList[category][action]['description'])
 
+        def OnUpdate(event):
+            action = panel.combo_box_function.GetValue().lower()
+            category = panel.combo_box_category.GetValue()
+
+            wait = wx.BusyInfo("Please wait, downloading command information...", panel)
+
+            BuiltInActionList.Update()
+
+            panel.combo_box_category.Clear()
+            panel.combo_box_function.Clear()
+            panel.combo_box_category.AppendItems(BuiltInActionList.keys())
+            panel.combo_box_function.AppendItems(BuiltInActionList(category))
+            panel.combo_box_category.SetValue(category)
+            panel.combo_box_function.SetValue(action)
+
+            del wait
+
         def initPanel(self):
             category = BuiltInActionList['All'][action.lower()]['category']
 
@@ -115,7 +132,7 @@ class BuiltInAction(eg.ActionBase):
 
             self.Bind(wx.EVT_COMBOBOX, OnFunctionChange, self.combo_box_category)
             self.Bind(wx.EVT_COMBOBOX, OnFunctionChange, self.combo_box_function)
-            #self.button_update.Bind(wx.EVT_BUTTON, OnUpdate)
+            self.button_update.Bind(wx.EVT_BUTTON, OnUpdate)
 
         def setPanelProperties(self):
             self.button_update.SetToolTipString('Update "BuiltInActions" from Kodis website.')
