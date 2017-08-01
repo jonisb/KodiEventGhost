@@ -84,13 +84,15 @@ class BuiltInAction(eg.ActionBase):
         #BuiltInActionList = self.plugin.Kodi.GetCommands("actions")
 
         def OnFunctionChange(event):
+            action = panel.combo_box_function.GetValue().lower()
+            category = panel.combo_box_category.GetValue()
+
             if event.GetEventObject() == panel.combo_box_category:
                 panel.combo_box_function.Clear()
-                for action in BuiltInActionList(panel.combo_box_category.GetValue()):
-                    panel.combo_box_function.Append(action)
+                panel.combo_box_function.AppendItems(BuiltInActionList(category))
 
             elif event.GetEventObject() == panel.combo_box_function:
-                panel.label_description.SetLabel(BuiltInActionList[panel.combo_box_category.GetValue()][panel.combo_box_function.GetValue().lower()]['description'])
+                panel.label_description.SetLabel(BuiltInActionList[category][action]['description'])
 
         def initPanel(self):
             category = BuiltInActionList['All'][action.lower()]['category']
