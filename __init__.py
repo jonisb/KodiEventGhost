@@ -90,6 +90,7 @@ class BuiltInAction(eg.ActionBase):
             if event.GetEventObject() == panel.combo_box_category:
                 panel.combo_box_function.Clear()
                 panel.combo_box_function.AppendItems(BuiltInActionList(category))
+                panel.label_description.Clear()
 
             elif event.GetEventObject() == panel.combo_box_function:
                 panel.label_description.SetLabel(BuiltInActionList[category][action]['description'])
